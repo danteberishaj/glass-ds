@@ -159,4 +159,53 @@ describe('SSR', () => {
     expect(html).not.toContain('aria-current="date"');
     expect(html).not.toContain('data-placement');
   });
+
+  it('renders app-shell navigation', () => {
+    const html = renderToString(
+      <gds.AppShell
+        header={
+          <gds.Navbar sticky>
+            <gds.NavbarMenuButton />
+            <gds.NavbarBrand href="/">Prism</gds.NavbarBrand>
+            <gds.NavbarNav>
+              <gds.NavbarItem>
+                <gds.NavbarLink href="/" active>
+                  Overview
+                </gds.NavbarLink>
+              </gds.NavbarItem>
+            </gds.NavbarNav>
+            <gds.NavbarActions>Actions</gds.NavbarActions>
+          </gds.Navbar>
+        }
+        sidebar={
+          <gds.Sidebar collapsed>
+            <gds.SidebarHeader>
+              <gds.SidebarToggle collapsed />
+            </gds.SidebarHeader>
+            <gds.SidebarContent>
+              <gds.SidebarNav>
+                <gds.SidebarGroup label="Workspace">
+                  <gds.SidebarItem>
+                    <gds.SidebarLink href="/inbox" icon={<svg />} active>
+                      Inbox
+                    </gds.SidebarLink>
+                  </gds.SidebarItem>
+                </gds.SidebarGroup>
+              </gds.SidebarNav>
+            </gds.SidebarContent>
+            <gds.SidebarSeparator />
+            <gds.SidebarFooter>Footer</gds.SidebarFooter>
+          </gds.Sidebar>
+        }
+      >
+        Page
+      </gds.AppShell>,
+    );
+    expect(html).toContain('<header');
+    expect(html).toContain('<aside');
+    expect(html).toContain('<main id="main-content"');
+    expect(html).toContain('href="#main-content"');
+    expect(html).toContain('aria-current="page"');
+    expect(html).toContain('aria-label="Workspace"');
+  });
 });

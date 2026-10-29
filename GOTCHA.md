@@ -67,6 +67,18 @@ Format: **symptom** → cause → fix. Newest entries go at the top of their sec
 
 ## Glassmorphism CSS
 
+- **`position: fixed` elements inside AppShell scroll with the page.** → `container-type: inline-size` adds layout
+  containment, which makes the element the containing block for fixed descendants. → AppShell uses viewport media
+  queries. Navbar does use a container query (it must adapt to its slot), so don't put `position: fixed` children in a
+  Navbar. Use the top layer (popover/dialog) instead.
+- **A nested glass panel (Sidebar in a Drawer, Calendar in a popover) renders as a flat milky box.** → The parent's
+  `backdrop-filter` is the child's backdrop root, so the child only blurs the panel. → Components that get embedded take
+  `surface="none"` (Sidebar, Calendar).
+- **Icon-only buttons render empty.** → Inline SVGs without width/height collapse to 0×0 in a flex row. → Button sizes
+  direct `svg` children to `1.25em`, and SidebarLink sizes its icon slot. Do the same in any component with an icon slot.
+- **An SVG gradient or mask renders blank in one copy of a component.** → Duplicate `id`s: `url(#id)` resolves to the
+  first match, and if that copy is inside `display: none` (a hidden desktop sidebar) it paints nothing. → Generate SVG
+  ids with `useId()`.
 
 - **Tinted glass (Alert, Badge) loses the tint in the fallback, or text becomes unreadable.** → Setting `--_fill` to
   an 18% `*-glass` tint *replaces* the surface instead of layering on it. → Keep `--_fill` and paint the tint as
@@ -197,6 +209,14 @@ Format: **symptom** → cause → fix. Newest entries go at the top of their sec
 
 ## Testing
 
+- **axe reports a contrast failure on a solid Button (e.g. white on indigo-400) in light mode.** → With a dark OS,
+  Storybook first paints dark and then sets `data-theme="light"`, so colour transitions start from the dark values. In a
+  background tab the animation clock is frozen at frame 0. → Call `document.getAnimations().forEach(a => a.finish())`
+  before running axe from a script.
+- **A helper exported from a `*.stories.tsx` file shows up as a broken story.** → CSF treats every named export as a
+  story. → Put shared demo components in `.storybook/` (e.g. `.storybook/demo-sidebar.tsx`).
+- **TS error "ToggleEventHandler is not assignable" on a custom `onToggle` prop.** → `onToggle` is a built-in DOM event
+  prop on every element's props type. → Name callbacks after state instead (`onCollapsedChange`, `onOpenChange`).
 - **jsdom has `HTMLDialogElement` but no `show`/`showModal`/`close`.** → Minimal stand-ins live in `src/test/setup.ts`.
 - **`toHaveAccessibleName` is empty on a closed `<dialog>`.** → Closed dialogs are hidden, so no name is computed. → Assert
   `aria-labelledby` while closed and the accessible name only when open.

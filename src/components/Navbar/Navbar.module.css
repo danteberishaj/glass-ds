@@ -1,0 +1,216 @@
+@layer gds.components {
+  /* The outer header carries stickiness and the gutter; the inner bar is the glass. */
+  .root {
+    container-type: inline-size;
+    container-name: gds-navbar;
+    z-index: var(--gds-z-index-raised);
+    font-family: var(--gds-font-family-sans);
+  }
+
+  .root[data-sticky] {
+    position: sticky;
+    top: 0;
+  }
+
+  .root[data-variant='floating'] {
+    padding: var(--gds-space-3) var(--gds-space-4);
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: var(--gds-space-4);
+    min-height: var(--gds-size-navbar);
+    padding-inline: var(--gds-space-4);
+    box-sizing: border-box;
+  }
+
+  .root[data-variant='floating'] .bar {
+    border-radius: var(--gds-radius-xl);
+  }
+
+  /* Attached: full bleed, only a bottom edge, square corners. */
+  .root[data-variant='attached'] .bar[data-intensity] {
+    border-width: 0 0 1px;
+    border-radius: 0;
+    padding-inline: var(--gds-space-6);
+    box-shadow: none;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--gds-space-2);
+    flex-shrink: 0;
+    font-size: var(--gds-font-size-md);
+    font-weight: var(--gds-font-weight-bold);
+    color: var(--gds-text-primary);
+    text-decoration: none;
+    border-radius: var(--gds-radius-sm);
+  }
+
+  .brand:focus-visible {
+    outline: 2px solid var(--gds-focus-ring);
+    outline-offset: 2px;
+  }
+
+  .nav {
+    min-width: 0;
+  }
+
+  .list {
+    display: flex;
+    align-items: center;
+    gap: var(--gds-space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .item {
+    display: flex;
+  }
+
+  .link {
+    --_t-duration: var(--gds-duration-fast);
+    --_t-easing: var(--gds-easing-out);
+
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--gds-space-2);
+    min-height: var(--gds-control-height-sm);
+    padding-inline: var(--gds-space-3);
+    border: 1px solid transparent;
+    border-radius: var(--gds-radius-full);
+    font-size: var(--gds-font-size-sm);
+    font-weight: var(--gds-font-weight-medium);
+    color: var(--gds-text-secondary);
+    text-decoration: none;
+    white-space: nowrap;
+    transition-property: background-color, color, border-color, transform;
+    transition-duration: var(--_t-duration);
+    transition-timing-function: var(--_t-easing);
+  }
+
+  .link:hover {
+    color: var(--gds-text-primary);
+    background-color: var(--gds-accent-glass);
+  }
+
+  .link:active {
+    transform: scale(0.97);
+  }
+
+  .link:not(:active) {
+    --_t-duration: var(--gds-duration-spring-bounce);
+    --_t-easing: var(--gds-easing-spring-bounce);
+  }
+
+  .link:focus-visible {
+    outline: 2px solid var(--gds-focus-ring);
+    outline-offset: 2px;
+  }
+
+  .link[data-active] {
+    color: var(--gds-text-primary);
+    background-color: var(--gds-surface-selected);
+    border-color: var(--gds-border-glass-highlight);
+    font-weight: var(--gds-font-weight-semibold);
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: var(--gds-space-2);
+    margin-inline-start: auto;
+  }
+
+  /* Menu button: hidden until the bar is narrower than its collapse point. */
+  .menuButton {
+    --_line: var(--gds-space-0_5);
+
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: var(--gds-control-height-md);
+    height: var(--gds-control-height-md);
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: var(--gds-radius-md);
+    background: transparent;
+    color: var(--gds-text-primary);
+    cursor: pointer;
+    transition: background-color var(--gds-duration-fast) var(--gds-easing-out);
+  }
+
+  .menuButton:hover {
+    background-color: var(--gds-accent-glass);
+  }
+
+  .menuButton:focus-visible {
+    outline: 2px solid var(--gds-focus-ring);
+    outline-offset: 2px;
+  }
+
+  .burger {
+    position: relative;
+    display: block;
+    width: 18px;
+    height: 12px;
+  }
+
+  .burger > span {
+    position: absolute;
+    inset-inline: 0;
+    height: var(--_line);
+    border-radius: var(--gds-radius-full);
+    background-color: currentColor;
+    transition-property: transform, opacity;
+    transition-duration: var(--gds-duration-spring-snappy);
+    transition-timing-function: var(--gds-easing-spring-snappy);
+  }
+
+  .burger > span:nth-child(1) { top: 0; }
+  .burger > span:nth-child(2) { top: calc(50% - var(--_line) / 2); }
+  .burger > span:nth-child(3) { bottom: 0; }
+
+  /* Open: top and bottom lines cross into an ×, the middle one fades. */
+  .menuButton[data-open] .burger > span:nth-child(1) { transform: translateY(5px) rotate(45deg); }
+  .menuButton[data-open] .burger > span:nth-child(2) { opacity: 0; transform: scaleX(0.4); }
+  .menuButton[data-open] .burger > span:nth-child(3) { transform: translateY(-5px) rotate(-45deg); }
+
+  @container gds-navbar (max-width: 639.98px) {
+    .bar[data-collapse='sm'] .nav { display: none; }
+    .bar[data-collapse='sm'] .menuButton { display: inline-flex; }
+  }
+
+  @container gds-navbar (max-width: 767.98px) {
+    .bar[data-collapse='md'] .nav { display: none; }
+    .bar[data-collapse='md'] .menuButton { display: inline-flex; }
+  }
+
+  @container gds-navbar (max-width: 1023.98px) {
+    .bar[data-collapse='lg'] .nav { display: none; }
+    .bar[data-collapse='lg'] .menuButton { display: inline-flex; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .link,
+    .link:not(:active) {
+      transition-property: background-color, color, border-color;
+    }
+    .link:active { transform: none; }
+    .burger > span { transition-duration: 0s; }
+  }
+
+  @media (forced-colors: active) {
+    .link[data-active] {
+      forced-color-adjust: none;
+      background-color: Highlight;
+      color: HighlightText;
+    }
+    .burger > span { background-color: ButtonText; }
+  }
+}

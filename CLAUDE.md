@@ -120,6 +120,8 @@ Mantine, HeroUI), rebuilt glass-native on platform primitives (`<dialog>`, `<det
 | Data display | Badge, Avatar + AvatarGroup, Kbd, Table (+Caption/Header/Body/Footer/Row/Head/Cell) | AvatarImage (internal) |
 | Feedback | Alert, Progress, Spinner, Skeleton | — |
 | Navigation | Tabs (+TabList/Tab/TabPanel), Breadcrumb (+Item/Link/Page/Separator/Ellipsis), Pagination | Tabs |
+| App navigation | Navbar (+Brand/Nav/Item/Link/Actions/MenuButton), Sidebar (+Header/Content/Footer/Nav/Group/Item/Link/Separator/Toggle) | — |
+| Layout patterns | AppShell (header + sidebar + main, skip link, mobile hand-off to Drawer) | — |
 | Disclosure & overlays | Accordion (+Item/Trigger/Content), Dialog (+Header/Title/Description/Body/Footer/Close), Drawer (same parts) | DialogRoot (internal) |
 
 ### Floating layers (decided)
@@ -153,6 +155,15 @@ Demo and docs: Storybook **Foundations/Motion**.
 - Fast in, springy out for presses: `:active` uses `duration-fast` + `easing-out`, and the release springs back.
 - `prefers-reduced-motion: reduce`: no movement. Opacity/colour crossfades stay, and loops become a slow pulse.
 - Sheen: add `GLASS_SHEEN_CLASS` (or `data-sheen`). It uses the element's `::after` and clips its children.
+
+### App navigation conventions
+
+- Navbar, Sidebar and AppShell are server-safe. State such as `collapsed` or the menu's `open` is a prop the caller owns.
+  Toggles (`SidebarToggle`, `NavbarMenuButton`) only reflect it (`aria-expanded`, name, icon).
+- On small screens, hide the sidebar (AppShell `sidebarBreakpoint`) and render the same links in a `Drawer` opened by
+  `NavbarMenuButton`. Inside the Drawer, use `<Sidebar surface="none">` so the glass isn't nested.
+- Links accept `as` (e.g. `next/link`) and `active` (`aria-current="page"`).
+- Storybook-only helpers (icons, demo compositions) live in `.storybook/`, never as named exports of a stories file.
 
 ## Glassmorphism principles
 

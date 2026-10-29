@@ -37,6 +37,11 @@ export * from './components/Skeleton';
 export * from './components/Tabs';
 export * from './components/Breadcrumb';
 export * from './components/Pagination';
+export * from './components/Navbar';
+export * from './components/Sidebar';
+
+// Layout patterns
+export * from './components/AppShell';
 
 // Disclosure & overlays
 export * from './components/Accordion';

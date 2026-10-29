@@ -34,6 +34,13 @@
     transform: translateY(-1px);
   }
 
+  /* Icons inside a button: sized to the text, never shrunk by the flex row. Inline SVGs often have no size. */
+  .root > svg {
+    flex-shrink: 0;
+    width: 1.25em;
+    height: 1.25em;
+  }
+
   .root:focus-visible {
     outline: 2px solid var(--gds-focus-ring);
     outline-offset: 2px;

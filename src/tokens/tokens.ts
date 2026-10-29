@@ -45,6 +45,7 @@ export const primitive = {
     springGentle: '480ms',
   },
   controlHeight: { sm: '32px', md: '40px', lg: '48px' },
+  size: { navbar: '64px', sidebar: '264px', sidebarCollapsed: '72px' },
   opacity: { disabled: '0.5', muted: '0.4', subdued: '0.72' },
   easing: {
     standard: 'cubic-bezier(0.2, 0, 0, 1)',

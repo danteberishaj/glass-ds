@@ -1,0 +1,127 @@
+@layer gds.components {
+  /*
+   * Media queries, not container queries: `container-type` adds layout containment, which would make
+   * the shell the containing block for every position:fixed descendant (see GOTCHA).
+   */
+  .root {
+    position: relative;
+    min-height: 100dvh;
+    font-family: var(--gds-font-family-sans);
+    color: var(--gds-text-primary);
+  }
+
+  .frame {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    min-height: 100dvh;
+  }
+
+  .root:not([data-has-sidebar]) .frame {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* sidebar-first: sidebar spans both rows, header + main stack beside it. */
+  .root[data-layout='sidebar-first'] .sidebar { grid-column: 1; grid-row: 1 / -1; }
+  .root[data-layout='sidebar-first'] .header { grid-column: -2; grid-row: 1; }
+  .root[data-layout='sidebar-first'] .main { grid-column: -2; grid-row: 2; }
+
+  /* header-first: header spans the full width, sidebar + main share the row below. */
+  .root[data-layout='header-first'] .header { grid-column: 1 / -1; grid-row: 1; }
+  .root[data-layout='header-first'] .sidebar { grid-column: 1; grid-row: 2; }
+  .root[data-layout='header-first'] .main { grid-column: -2; grid-row: 2; }
+
+  .root:not([data-has-header]) .main { grid-row: 1 / -1; }
+
+  /*
+   * The sidebar column sticks and fills the viewport height; the Sidebar inside stretches to it.
+   * A floating Sidebar gets the same gutter as a floating Navbar.
+   */
+  .sidebar {
+    position: sticky;
+    top: 0;
+    display: flex;
+    align-self: start;
+    height: 100dvh;
+    box-sizing: border-box;
+    z-index: var(--gds-z-index-raised);
+  }
+
+  .root[data-layout='header-first'] .sidebar {
+    top: var(--gds-size-navbar);
+    height: calc(100dvh - var(--gds-size-navbar));
+  }
+
+  .sidebar > * {
+    flex: 1;
+  }
+
+  .sidebar > [data-variant='floating'] {
+    margin: var(--gds-space-3) 0 var(--gds-space-3) var(--gds-space-3);
+  }
+
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: var(--gds-z-index-raised);
+    min-width: 0;
+  }
+
+  .main {
+    min-width: 0;
+    padding: var(--gds-space-6);
+  }
+
+  .main:focus {
+    outline: none;
+  }
+
+  /* Visible only on keyboard focus, then jumps to <main>. */
+  .skipLink {
+    position: absolute;
+    top: var(--gds-space-3);
+    inset-inline-start: var(--gds-space-3);
+    z-index: var(--gds-z-index-toast);
+    padding: var(--gds-space-2) var(--gds-space-4);
+    border-radius: var(--gds-radius-md);
+    background-color: var(--gds-accent);
+    color: var(--gds-text-on-accent);
+    font-size: var(--gds-font-size-sm);
+    font-weight: var(--gds-font-weight-semibold);
+    text-decoration: none;
+    transform: translateY(calc(-100% - var(--gds-space-6)));
+    transition: transform var(--gds-duration-spring-snappy) var(--gds-easing-spring-snappy);
+  }
+
+  .skipLink:focus-visible {
+    transform: none;
+    outline: 2px solid var(--gds-focus-ring);
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 639.98px) {
+    .root[data-breakpoint='sm'] .sidebar { display: none; }
+    .root[data-breakpoint='sm'] .frame { grid-template-columns: minmax(0, 1fr); }
+    .root[data-breakpoint='sm'] .header,
+    .root[data-breakpoint='sm'] .main { grid-column: 1 / -1; }
+  }
+
+  @media (max-width: 767.98px) {
+    .root[data-breakpoint='md'] .sidebar { display: none; }
+    .root[data-breakpoint='md'] .frame { grid-template-columns: minmax(0, 1fr); }
+    .root[data-breakpoint='md'] .header,
+    .root[data-breakpoint='md'] .main { grid-column: 1 / -1; }
+    .root[data-breakpoint='md'] .main { padding: var(--gds-space-4); }
+  }
+
+  @media (max-width: 1023.98px) {
+    .root[data-breakpoint='lg'] .sidebar { display: none; }
+    .root[data-breakpoint='lg'] .frame { grid-template-columns: minmax(0, 1fr); }
+    .root[data-breakpoint='lg'] .header,
+    .root[data-breakpoint='lg'] .main { grid-column: 1 / -1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skipLink { transition: none; }
+  }
+}

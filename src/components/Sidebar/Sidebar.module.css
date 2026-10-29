@@ -1,0 +1,323 @@
+@layer gds.components {
+  /*
+   * Width animates on the root only (an exception to "transform/opacity only": the sidebar is the
+   * one thing that has to reflow its neighbour). Labels fade and clip inside the rail meanwhile.
+   */
+  .root[data-intensity] {
+    --_width: var(--gds-size-sidebar);
+    --_pad: var(--gds-space-3);
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--gds-space-2);
+    box-sizing: border-box;
+    width: var(--_width);
+    min-height: 0;
+    padding: var(--_pad);
+    overflow: hidden;
+    font-family: var(--gds-font-family-sans);
+    transition-property: width;
+    transition-duration: var(--gds-duration-spring-gentle);
+    transition-timing-function: var(--gds-easing-spring-gentle);
+  }
+
+  .root[data-collapsed] {
+    --_width: var(--gds-size-sidebar-collapsed);
+  }
+
+  /* Embedded (inside a Drawer or another panel): no surface of its own, fills the parent. */
+  .root[data-surface='none'] {
+    --_width: 100%;
+    --_pad: 0px;
+
+    background: none;
+    border: 0;
+    box-shadow: none;
+    color: var(--gds-text-primary);
+  }
+
+  .root[data-variant='floating'] {
+    border-radius: var(--gds-radius-xl);
+  }
+
+  /* Attached: flush to the viewport edge, only the inner edge is drawn. */
+  .root[data-variant='attached'] {
+    border-radius: 0;
+    box-shadow: none;
+    border-width: 0 1px 0 0;
+  }
+  .root[data-variant='attached'][data-side='right'] {
+    border-width: 0 0 0 1px;
+  }
+
+  .header,
+  .footer {
+    display: flex;
+    align-items: center;
+    gap: var(--gds-space-2);
+    min-height: var(--gds-control-height-lg);
+    flex-shrink: 0;
+  }
+
+  .root[data-collapsed] .header,
+  .root[data-collapsed] .footer {
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .content {
+    flex: 1;
+    min-height: 0;
+    margin-inline: calc(var(--_pad) * -1);
+    padding-inline: var(--_pad);
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+
+  .nav {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gds-space-4);
+  }
+
+  .group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gds-space-1);
+  }
+
+  .groupLabel {
+    padding-inline: var(--gds-space-3);
+    font-size: var(--gds-font-size-xs);
+    font-weight: var(--gds-font-weight-semibold);
+    letter-spacing: 0.02em;
+    color: var(--gds-text-secondary);
+    white-space: nowrap;
+    transition: opacity var(--gds-duration-fast) var(--gds-easing-out);
+  }
+
+  /* Collapsed: the label's row stays (keeps groups aligned), its text fades out. */
+  .root[data-collapsed] .groupLabel {
+    opacity: 0;
+  }
+
+  .list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gds-space-0_5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .item {
+    display: flex;
+  }
+
+  .link {
+    --_t-duration: var(--gds-duration-fast);
+    --_t-easing: var(--gds-easing-out);
+
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--gds-space-3);
+    width: 100%;
+    min-height: var(--gds-control-height-md);
+    box-sizing: border-box;
+    padding-inline: var(--gds-space-3);
+    border: 1px solid transparent;
+    border-radius: var(--gds-radius-md);
+    background: transparent;
+    font: inherit;
+    font-size: var(--gds-font-size-sm);
+    font-weight: var(--gds-font-weight-medium);
+    color: var(--gds-text-secondary);
+    text-align: start;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition-property: background-color, color, border-color, transform;
+    transition-duration: var(--_t-duration);
+    transition-timing-function: var(--_t-easing);
+  }
+
+  .link:not(:active) {
+    --_t-duration: var(--gds-duration-spring-bounce);
+    --_t-easing: var(--gds-easing-spring-bounce);
+  }
+
+  .link:hover {
+    color: var(--gds-text-primary);
+    background-color: var(--gds-accent-glass);
+  }
+
+  .link:active {
+    transform: scale(0.98);
+  }
+
+  .link:focus-visible {
+    outline: 2px solid var(--gds-focus-ring);
+    outline-offset: -2px;
+  }
+
+  .link[data-active] {
+    color: var(--gds-text-primary);
+    background-color: var(--gds-surface-selected);
+    border-color: var(--gds-border-glass-highlight);
+    box-shadow: var(--gds-shadow-glass);
+    font-weight: var(--gds-font-weight-semibold);
+  }
+
+  /* Accent tick on the inner edge of the active link. */
+  .link[data-active]::before {
+    content: '';
+    position: absolute;
+    inset-block: var(--gds-space-2);
+    inset-inline-start: calc(var(--gds-space-0_5) * -1);
+    width: var(--gds-space-1);
+    border-radius: var(--gds-radius-full);
+    background-color: var(--gds-accent);
+  }
+
+  .icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+  }
+
+  .icon > svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: opacity var(--gds-duration-fast) var(--gds-easing-out);
+  }
+
+  .badge {
+    display: inline-flex;
+    flex-shrink: 0;
+    transition: opacity var(--gds-duration-fast) var(--gds-easing-out);
+  }
+
+  /*
+   * Collapsed rail: links shrink to a square around the icon. The label becomes screen-reader-only
+   * (same rules as .gds-sr-only) so the link keeps its accessible name.
+   */
+  .root[data-collapsed] .link {
+    justify-content: center;
+    padding-inline: 0;
+    gap: 0;
+  }
+
+  .root[data-collapsed] .label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    opacity: 0;
+  }
+
+  .root[data-collapsed] .badge {
+    display: none;
+  }
+
+  /* Collapsed + active: a dot instead of the tick, so the rail still shows where you are. */
+  .root[data-collapsed] .link[data-active]::before {
+    inset-block: auto;
+    inset-inline-start: auto;
+    bottom: var(--gds-space-1);
+    width: var(--gds-space-1);
+    height: var(--gds-space-1);
+  }
+
+  .separator {
+    flex-shrink: 0;
+    width: 100%;
+    margin: var(--gds-space-1) 0;
+    border: 0;
+    border-top: 1px solid var(--gds-border-subtle);
+  }
+
+  .toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: var(--gds-control-height-sm);
+    height: var(--gds-control-height-sm);
+    margin-inline-start: auto;
+    padding: 0;
+    border: 1px solid var(--gds-border-glass);
+    border-radius: var(--gds-radius-md);
+    background-color: var(--gds-surface-glass-subtle);
+    color: var(--gds-text-secondary);
+    cursor: pointer;
+    transition: background-color var(--gds-duration-fast) var(--gds-easing-out);
+  }
+
+  .root[data-collapsed] .toggle {
+    margin-inline-start: 0;
+  }
+
+  .toggle:hover {
+    background-color: var(--gds-accent-glass);
+    color: var(--gds-text-primary);
+  }
+
+  .toggle:focus-visible {
+    outline: 2px solid var(--gds-focus-ring);
+    outline-offset: 2px;
+  }
+
+  /*
+   * Chevron drawn with two borders. Points toward the edge the sidebar collapses into ("<" for a
+   * left sidebar), and flips when collapsed. --_flip mirrors it for right-side sidebars and RTL
+   * (both together cancel out).
+   */
+  .chevron {
+    --_flip: 1;
+    --_turn: 45deg;
+
+    width: 7px;
+    height: 7px;
+    border-left: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: scaleX(var(--_flip)) translateX(1px) rotate(var(--_turn));
+    transition: transform var(--gds-duration-spring-snappy) var(--gds-easing-spring-snappy);
+  }
+
+  .toggle[data-collapsed] .chevron { --_turn: -135deg; }
+  .root[data-side='right'] .chevron,
+  .chevron:dir(rtl) { --_flip: -1; }
+  .root[data-side='right'] .chevron:dir(rtl) { --_flip: 1; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .root[data-intensity] { transition-duration: 0s; }
+    .link,
+    .link:not(:active) { transition-property: background-color, color, border-color; }
+    .link:active { transform: none; }
+    .chevron { transition: none; }
+  }
+
+  @media (forced-colors: active) {
+    .link[data-active] {
+      forced-color-adjust: none;
+      background-color: Highlight;
+      color: HighlightText;
+    }
+    .link[data-active]::before { background-color: HighlightText; }
+  }
+}

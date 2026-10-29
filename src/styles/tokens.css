@@ -85,6 +85,9 @@
     --gds-control-height-sm: 32px;
     --gds-control-height-md: 40px;
     --gds-control-height-lg: 48px;
+    --gds-size-navbar: 64px;
+    --gds-size-sidebar: 264px;
+    --gds-size-sidebar-collapsed: 72px;
     --gds-opacity-disabled: 0.5;
     --gds-opacity-muted: 0.4;
     --gds-opacity-subdued: 0.72;
