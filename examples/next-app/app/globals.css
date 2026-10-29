@@ -1,0 +1,12 @@
+/* Unlayered app CSS: beats everything in the gds.* layers without !important. */
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  font-family: var(--gds-font-family-sans);
+  background:
+    radial-gradient(circle at 20% 20%, rgb(var(--gds-color-pink-400) / 0.8), transparent 40%),
+    radial-gradient(circle at 80% 70%, rgb(var(--gds-color-cyan-400) / 0.7), transparent 40%),
+    rgb(var(--gds-color-indigo-300));
+}

@@ -1,0 +1,6 @@
+/*
+ * Cascade layer order. Everything the design system ships lives in a `gds.*` layer,
+ * so any unlayered consumer CSS (or Tailwind utilities) wins without !important.
+ * This file must be the first CSS imported by src/index.ts.
+ */
+@layer gds.tokens, gds.base, gds.components;

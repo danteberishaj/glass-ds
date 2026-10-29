@@ -1,0 +1,31 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "storybook",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "storybook",
+        "--",
+        "--no-open",
+        "--ci"
+      ],
+      "port": 6006
+    },
+    {
+      "name": "next-example",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "--prefix",
+        "examples/next-app",
+        "next",
+        "start",
+        "examples/next-app",
+        "-p",
+        "3100"
+      ],
+      "port": 3100
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+/*
+ * The glass recipe. Global class (not a CSS Module): components add `GLASS_CLASS` from utils/glass.ts.
+ *
+ * Order matters: opaque fallback → @supports glass → user-preference overrides last.
+ * Tune per instance through the private custom properties (--_fill, --_blur), never by
+ * overriding `backdrop-filter` directly.
+ */
+@layer gds.components {
+  .gds-glass {
+    --_fill: var(--gds-surface-glass);
+    --_blur: var(--gds-blur-md);
+    --_saturate: var(--gds-saturate-regular);
+
+    background-color: var(--gds-surface-solid);
+    border: 1px solid var(--gds-border-glass);
+    box-shadow: var(--gds-shadow-glass);
+    color: var(--gds-text-primary);
+  }
+
+  .gds-glass[data-intensity='subtle'] {
+    --_fill: var(--gds-surface-glass-subtle);
+    --_blur: var(--gds-blur-sm);
+  }
+
+  .gds-glass[data-intensity='strong'] {
+    --_fill: var(--gds-surface-glass-strong);
+    --_blur: var(--gds-blur-xl);
+    --_saturate: var(--gds-saturate-vivid);
+  }
+
+  @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .gds-glass {
+      background-color: var(--_fill);
+      -webkit-backdrop-filter: blur(var(--_blur)) saturate(var(--_saturate));
+      backdrop-filter: blur(var(--_blur)) saturate(var(--_saturate));
+    }
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .gds-glass {
+      background-color: var(--gds-surface-solid);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+
+  @media (prefers-contrast: more) {
+    .gds-glass {
+      background-color: var(--gds-surface-solid-strong);
+      border-color: var(--gds-border-strong);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .gds-glass {
+      background-color: Canvas;
+      color: CanvasText;
+      border-color: CanvasText;
+      box-shadow: none;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+}

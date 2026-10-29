@@ -1,0 +1,35 @@
+/* Storybook-only. Not shipped. */
+.sb-backdrop {
+  min-height: 100vh;
+  padding: 48px;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  font-family: var(--gds-font-family-sans);
+  color: var(--gds-text-primary);
+}
+
+.sb-backdrop[data-backdrop='vivid'] {
+  background:
+    radial-gradient(circle at 15% 20%, rgb(var(--gds-color-pink-400) / 0.9), transparent 40%),
+    radial-gradient(circle at 85% 30%, rgb(var(--gds-color-cyan-400) / 0.85), transparent 40%),
+    radial-gradient(circle at 50% 90%, rgb(var(--gds-color-violet-500) / 0.9), transparent 45%),
+    rgb(var(--gds-color-indigo-300));
+}
+
+[data-theme='dark'] .sb-backdrop[data-backdrop='vivid'] {
+  background:
+    radial-gradient(circle at 15% 20%, rgb(var(--gds-color-pink-400) / 0.55), transparent 40%),
+    radial-gradient(circle at 85% 30%, rgb(var(--gds-color-cyan-400) / 0.45), transparent 40%),
+    radial-gradient(circle at 50% 90%, rgb(var(--gds-color-violet-500) / 0.6), transparent 45%),
+    rgb(var(--gds-color-slate-950));
+}
+
+.sb-backdrop[data-backdrop='plain'] {
+  background: var(--gds-surface-solid);
+}
+
+/* Docs pages render many stories; keep each preview compact. */
+.docs-story .sb-backdrop {
+  min-height: 240px;
+}

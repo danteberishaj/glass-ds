@@ -1,0 +1,14 @@
+@layer gds.components {
+  .root {
+    border-radius: var(--gds-radius-lg);
+  }
+
+  .root[data-radius='sm'] { border-radius: var(--gds-radius-sm); }
+  .root[data-radius='md'] { border-radius: var(--gds-radius-md); }
+  .root[data-radius='xl'] { border-radius: var(--gds-radius-xl); }
+  .root[data-radius='none'] { border-radius: var(--gds-radius-none); }
+
+  .root[data-elevation='raised'] {
+    box-shadow: var(--gds-shadow-glass-raised);
+  }
+}
