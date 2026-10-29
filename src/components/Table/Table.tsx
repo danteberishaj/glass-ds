@@ -75,7 +75,11 @@ export function TableFooter({ className, ...rest }: TableFooterProps) {
 }
 
 export type TableRowProps = ComponentPropsWithRef<'tr'>;
-/** Set `data-state="selected"` to highlight a selected row. */
+/**
+ * Set `data-state="selected"` to highlight a selected row. The highlight is a surface colour only, so
+ * the selection must also be in the content: a checkbox cell (`<Checkbox aria-label="Select row" checked>`)
+ * or `aria-selected` on a grid row. Colour alone is not announced and vanishes in forced-colors mode.
+ */
 export function TableRow({ className, ...rest }: TableRowProps) {
   return <tr className={cx(styles.row, className)} {...rest} />;
 }

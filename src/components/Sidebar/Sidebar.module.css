@@ -94,7 +94,9 @@
     letter-spacing: 0.02em;
     color: var(--gds-text-secondary);
     white-space: nowrap;
-    transition: opacity var(--gds-duration-fast) var(--gds-easing-out);
+    transition-property: opacity;
+    transition-duration: var(--gds-duration-fast);
+    transition-timing-function: var(--gds-easing-out);
   }
 
   /* Collapsed: the label's row stays (keeps groups aligned), its text fades out. */
@@ -105,7 +107,7 @@
   .list {
     display: flex;
     flex-direction: column;
-    gap: var(--gds-space-0_5);
+    gap: var(--gds-space-0-5);
     margin: 0;
     padding: 0;
     list-style: none;
@@ -175,7 +177,7 @@
     content: '';
     position: absolute;
     inset-block: var(--gds-space-2);
-    inset-inline-start: calc(var(--gds-space-0_5) * -1);
+    inset-inline-start: calc(var(--gds-space-0-5) * -1);
     width: var(--gds-space-1);
     border-radius: var(--gds-radius-full);
     background-color: var(--gds-accent);
@@ -200,13 +202,17 @@
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
-    transition: opacity var(--gds-duration-fast) var(--gds-easing-out);
+    transition-property: opacity;
+    transition-duration: var(--gds-duration-fast);
+    transition-timing-function: var(--gds-easing-out);
   }
 
   .badge {
     display: inline-flex;
     flex-shrink: 0;
-    transition: opacity var(--gds-duration-fast) var(--gds-easing-out);
+    transition-property: opacity;
+    transition-duration: var(--gds-duration-fast);
+    transition-timing-function: var(--gds-easing-out);
   }
 
   /*
@@ -265,7 +271,9 @@
     background-color: var(--gds-surface-glass-subtle);
     color: var(--gds-text-secondary);
     cursor: pointer;
-    transition: background-color var(--gds-duration-fast) var(--gds-easing-out);
+    transition-property: background-color;
+    transition-duration: var(--gds-duration-fast);
+    transition-timing-function: var(--gds-easing-out);
   }
 
   .root[data-collapsed] .toggle {
@@ -296,7 +304,10 @@
     border-left: 2px solid currentColor;
     border-bottom: 2px solid currentColor;
     transform: scaleX(var(--_flip)) translateX(1px) rotate(var(--_turn));
-    transition: transform var(--gds-duration-spring-snappy) var(--gds-easing-spring-snappy);
+    /* Longhands: a linear() spring inside the shorthand invalidates it in older browsers (see GOTCHA). */
+    transition-property: transform;
+    transition-duration: var(--gds-duration-spring-snappy);
+    transition-timing-function: var(--gds-easing-spring-snappy);
   }
 
   .toggle[data-collapsed] .chevron { --_turn: -135deg; }

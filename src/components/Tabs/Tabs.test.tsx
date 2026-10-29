@@ -111,6 +111,29 @@ describe('Tabs', () => {
     expect(screen.getByRole('tab', { name: 'Password' })).toHaveAttribute('aria-selected', 'true');
   });
 
+  it('does not call onValueChange when clicking the already-selected tab', async () => {
+    const onValueChange = vi.fn();
+    render(<Example onValueChange={onValueChange} />);
+    await userEvent.click(screen.getByRole('tab', { name: 'Account' }));
+    expect(onValueChange).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole('tab', { name: 'Billing' }));
+    await userEvent.click(screen.getByRole('tab', { name: 'Billing' }));
+    expect(onValueChange).toHaveBeenCalledExactlyOnceWith('billing');
+  });
+
+  it('puts the first enabled tab in the tab order when value names a disabled or absent tab', () => {
+    const { rerender } = render(<Example value="password" disableSecond />);
+    expect(screen.getByRole('tab', { name: 'Account' })).toHaveAttribute('tabindex', '0');
+    expect(screen.getByRole('tab', { name: 'Password' })).toHaveAttribute('tabindex', '-1');
+    expect(screen.getByRole('tab', { name: 'Billing' })).toHaveAttribute('tabindex', '-1');
+    rerender(<Example value="nope" />);
+    expect(screen.getByRole('tab', { name: 'Account' })).toHaveAttribute('tabindex', '0');
+    expect(screen.getByRole('tab', { name: 'Billing' })).toHaveAttribute('tabindex', '-1');
+    rerender(<Example value="billing" />);
+    expect(screen.getByRole('tab', { name: 'Account' })).toHaveAttribute('tabindex', '-1');
+    expect(screen.getByRole('tab', { name: 'Billing' })).toHaveAttribute('tabindex', '0');
+  });
+
   it('a controlled value without onValueChange does not change', async () => {
     render(<Example value="account" />);
     await userEvent.click(screen.getByRole('tab', { name: 'Billing' }));

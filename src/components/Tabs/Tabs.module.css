@@ -85,10 +85,9 @@
     color: var(--gds-text-secondary);
     cursor: pointer;
     user-select: none;
-    transition:
-      background-color var(--gds-duration-fast) var(--gds-easing-standard),
-      color var(--gds-duration-fast) var(--gds-easing-standard),
-      box-shadow var(--gds-duration-fast) var(--gds-easing-standard);
+    transition-property: background-color, color, box-shadow;
+    transition-duration: var(--gds-duration-fast);
+    transition-timing-function: var(--gds-easing-standard);
   }
 
   .tab[data-orientation='vertical'] {
@@ -143,7 +142,9 @@
     height: 2px;
     border-radius: var(--gds-radius-full);
     background-color: transparent;
-    transition: background-color var(--gds-duration-fast) var(--gds-easing-standard);
+    transition-property: background-color;
+    transition-duration: var(--gds-duration-fast);
+    transition-timing-function: var(--gds-easing-standard);
   }
 
   .tab[data-variant='underline'][data-orientation='vertical']::after {

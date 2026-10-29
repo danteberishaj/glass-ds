@@ -49,3 +49,4 @@ export * from './components/Dialog';
 export * from './components/Drawer';
 
 export { cx } from './utils/cx';
+export type { Tone, Size } from './types';

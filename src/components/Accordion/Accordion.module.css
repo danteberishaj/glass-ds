@@ -26,7 +26,9 @@
     cursor: pointer;
     user-select: none;
     list-style: none; /* hides the native marker (Firefox, Chrome) */
-    transition: background-color var(--gds-duration-fast) var(--gds-easing-standard);
+    transition-property: background-color;
+    transition-duration: var(--gds-duration-fast);
+    transition-timing-function: var(--gds-easing-standard);
   }
 
   /* hides the native marker (Safari) */

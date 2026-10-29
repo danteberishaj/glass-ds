@@ -1,11 +1,12 @@
 import type { ComponentPropsWithRef } from 'react';
+import type { Size, Tone } from '../../types';
 import { cx } from '../../utils/cx';
 import { GLASS_CLASS } from '../../utils/glass';
 import styles from './Badge.module.css';
 
 export type BadgeVariant = 'glass' | 'solid' | 'outline';
-export type BadgeTone = 'neutral' | 'accent' | 'success' | 'warning' | 'danger' | 'info';
-export type BadgeSize = 'sm' | 'md';
+export type BadgeTone = Tone;
+export type BadgeSize = Extract<Size, 'sm' | 'md'>;
 
 export type BadgeProps = ComponentPropsWithRef<'span'> & {
   variant?: BadgeVariant;

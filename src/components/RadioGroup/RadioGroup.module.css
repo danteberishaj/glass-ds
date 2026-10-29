@@ -1,14 +1,11 @@
+/* Wrapper, label, hint and error typography come from src/internal/field.module.css. */
 @layer gds.components {
-  /* Group */
+  /* Group: a fieldset with the UA box reset. */
   .group {
-    display: flex;
-    flex-direction: column;
-    gap: var(--gds-space-2);
     min-inline-size: 0;
     margin: 0;
     padding: 0;
     border: 0;
-    font-family: var(--gds-font-family-sans);
   }
 
   .legend {
@@ -20,7 +17,7 @@
   }
 
   /* A legend followed by a hint: keep them visually tight. */
-  .legend:has(+ .groupHint) {
+  .legend:has(+ span) {
     margin-block-end: 0;
   }
 
@@ -40,35 +37,17 @@
     gap: var(--gds-space-2);
   }
 
-  .groupHint,
-  .error {
-    font-size: var(--gds-font-size-xs);
-    line-height: var(--gds-font-line-height-normal);
-  }
-
-  .groupHint {
-    color: var(--gds-text-secondary);
-  }
-
-  .error {
-    font-weight: var(--gds-font-weight-medium);
-    color: var(--gds-danger);
-  }
-
   /* Item */
   .root {
-    --_box: 20px;
-    --_font-size: var(--gds-font-size-sm);
+    --_box: var(--gds-control-box-md);
+    --_label-size: var(--gds-font-size-sm);
     --_gap: var(--gds-space-3);
-
-    display: flex;
-    flex-direction: column;
-    gap: var(--gds-space-1);
+    --_field-gap: var(--gds-space-1);
   }
 
   .root[data-size='sm'] {
-    --_box: 16px;
-    --_font-size: var(--gds-font-size-xs);
+    --_box: var(--gds-control-box-sm);
+    --_label-size: var(--gds-font-size-xs);
     --_gap: var(--gds-space-2);
   }
 
@@ -91,8 +70,8 @@
     inline-size: var(--_box);
     block-size: var(--_box);
     margin: 0;
-    margin-block-start: max(0px, calc((var(--_font-size) * var(--gds-font-line-height-normal) - var(--_box)) / 2));
-    border: 1.5px solid var(--_border);
+    margin-block-start: max(0px, calc((var(--_label-size) * var(--gds-font-line-height-normal) - var(--_box)) / 2));
+    border: var(--gds-control-border-width) solid var(--_border);
     border-radius: var(--gds-radius-full);
     background-color: var(--_bg);
     color: var(--gds-text-on-accent);
@@ -161,10 +140,6 @@
   }
 
   .label {
-    font-size: var(--_font-size);
-    font-weight: var(--gds-font-weight-medium);
-    line-height: var(--gds-font-line-height-normal);
-    color: var(--gds-text-primary);
     cursor: pointer;
     user-select: none;
   }
@@ -174,11 +149,9 @@
     opacity: var(--gds-opacity-disabled);
   }
 
-  .hint {
+  /* The option hint lines up with the label, not the dot. */
+  .message {
     padding-inline-start: calc(var(--_box) + var(--_gap));
-    font-size: var(--gds-font-size-xs);
-    line-height: var(--gds-font-line-height-normal);
-    color: var(--gds-text-secondary);
   }
 
   @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {

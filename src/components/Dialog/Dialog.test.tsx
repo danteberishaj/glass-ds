@@ -19,7 +19,6 @@ import {
 function Example(props: Partial<DialogProps>) {
   return (
     <Dialog {...props}>
-      <DialogClose />
       <DialogHeader>
         <DialogTitle>Edit profile</DialogTitle>
         <DialogDescription>Changes are saved to your account.</DialogDescription>
@@ -31,6 +30,7 @@ function Example(props: Partial<DialogProps>) {
       <DialogFooter>
         <DialogClose>Cancel</DialogClose>
       </DialogFooter>
+      <DialogClose />
     </Dialog>
   );
 }
@@ -43,9 +43,9 @@ function Controlled({ onOpenChange, ...props }: Partial<DialogProps>) {
       <Example
         {...props}
         open={open}
-        onOpenChange={(next) => {
+        onOpenChange={(next, details) => {
           setOpen(next);
-          onOpenChange?.(next);
+          onOpenChange?.(next, details);
         }}
       />
     </>
@@ -74,13 +74,47 @@ describe('Dialog', () => {
     expect(el).toHaveAccessibleDescription('Changes are saved to your account.');
   });
 
-  it('omits aria-describedby when there is no description', () => {
+  it('always points aria-labelledby/aria-describedby at the generated ids (no state round-trip)', () => {
     render(
       <Dialog defaultOpen>
         <DialogTitle>Only a title</DialogTitle>
       </Dialog>,
     );
-    expect(screen.getByRole('dialog', { name: 'Only a title' })).not.toHaveAttribute('aria-describedby');
+    const el = screen.getByRole('dialog', { name: 'Only a title' });
+    expect(el).toHaveAttribute('aria-labelledby', screen.getByText('Only a title').id);
+    expect(el).toHaveAttribute('aria-describedby');
+    expect(el).not.toHaveAccessibleDescription();
+  });
+
+  it('warns once in development when opened without a DialogTitle', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { rerender } = render(<Dialog open>Untitled</Dialog>);
+    expect(warn).toHaveBeenCalledOnce();
+    expect(warn.mock.calls[0]?.[0]).toMatch(/DialogTitle/);
+    rerender(<Dialog open={false}>Untitled</Dialog>);
+    rerender(<Dialog open>Untitled</Dialog>);
+    expect(warn).toHaveBeenCalledOnce();
+    warn.mockRestore();
+  });
+
+  it('moves initial focus to the panel, not the corner close button', async () => {
+    render(<Controlled />);
+    await userEvent.click(screen.getByRole('button', { name: 'Open' }));
+    const panel = screen.getByText('Edit profile').closest('[tabindex="-1"]');
+    expect(panel).toBeInstanceOf(HTMLDivElement);
+    expect(panel).toHaveFocus();
+    expect(screen.getByRole('button', { name: 'Close' })).not.toHaveFocus();
+  });
+
+  it('closes an open dialog when unmounted without reporting it', () => {
+    const close = vi.spyOn(HTMLDialogElement.prototype, 'close');
+    const onOpenChange = vi.fn();
+    const { unmount } = render(<Example open onOpenChange={onOpenChange} />);
+    expect(dialog()).toHaveAttribute('open');
+    unmount();
+    expect(close).toHaveBeenCalledOnce();
+    expect(onOpenChange).not.toHaveBeenCalled();
+    close.mockRestore();
   });
 
   it('opens with showModal() and closes with close() following the open prop', async () => {
@@ -96,7 +130,7 @@ describe('Dialog', () => {
     expect(close).toHaveBeenCalled();
     expect(dialog()).not.toHaveAttribute('open');
     // closing through the prop must not report a second close
-    expect(onOpenChange.mock.calls).toEqual([[false]]);
+    expect(onOpenChange.mock.calls).toEqual([[false, { reason: 'close' }]]);
     showModal.mockRestore();
     close.mockRestore();
   });
@@ -113,8 +147,46 @@ describe('Dialog', () => {
     render(<Controlled onOpenChange={onOpenChange} />);
     await userEvent.click(screen.getByRole('button', { name: 'Open' }));
     await userEvent.type(screen.getByLabelText('Name'), '{Escape}');
-    expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(false, { reason: 'escape' });
     expect(dialog()).not.toHaveAttribute('open');
+  });
+
+  it('ignores a second close request once the element is closed (keydown + cancel)', () => {
+    const onOpenChange = vi.fn();
+    render(<Example open onOpenChange={onOpenChange} />);
+    fireEvent.keyDown(dialog(), { key: 'Escape' });
+    // the owner closed it; the browser's follow-up `cancel` must not report again
+    act(() => dialog().close());
+    onOpenChange.mockClear();
+    act(() => {
+      dialog().dispatchEvent(new Event('cancel', { cancelable: true }));
+    });
+    fireEvent.keyDown(dialog(), { key: 'Escape' });
+    expect(onOpenChange).not.toHaveBeenCalled();
+  });
+
+  it('closeOnEscape={false} keeps Esc out but still closes on the backdrop', async () => {
+    const onOpenChange = vi.fn();
+    render(<Controlled closeOnEscape={false} onOpenChange={onOpenChange} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Open' }));
+    expect(dialog()).toHaveAttribute('closedby', 'none');
+    await userEvent.type(screen.getByLabelText('Name'), '{Escape}');
+    expect(onOpenChange).not.toHaveBeenCalled();
+    fireEvent.pointerDown(dialog());
+    fireEvent.click(dialog());
+    expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(false, { reason: 'backdrop' });
+  });
+
+  it('closeOnBackdropClick={false} keeps the backdrop out but still closes on Esc', async () => {
+    const onOpenChange = vi.fn();
+    render(<Controlled closeOnBackdropClick={false} onOpenChange={onOpenChange} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Open' }));
+    expect(dialog()).not.toHaveAttribute('closedby');
+    fireEvent.pointerDown(dialog());
+    fireEvent.click(dialog());
+    expect(onOpenChange).not.toHaveBeenCalled();
+    await userEvent.type(screen.getByLabelText('Name'), '{Escape}');
+    expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(false, { reason: 'escape' });
   });
 
   it('handles the native cancel event (close requests) without closing behind the owner', () => {
@@ -125,7 +197,7 @@ describe('Dialog', () => {
       dialog().dispatchEvent(cancel);
     });
     expect(cancel.defaultPrevented).toBe(true);
-    expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(onOpenChange).toHaveBeenCalledWith(false, { reason: 'escape' });
   });
 
   it('closes on backdrop click, not on clicks inside the panel', async () => {
@@ -137,7 +209,7 @@ describe('Dialog', () => {
     // events on ::backdrop target the <dialog> itself
     fireEvent.pointerDown(dialog());
     fireEvent.click(dialog());
-    expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(onOpenChange).toHaveBeenCalledWith(false, { reason: 'backdrop' });
   });
 
   it('ignores Escape, cancel and backdrop when dismissible={false}', async () => {
@@ -157,14 +229,14 @@ describe('Dialog', () => {
     expect(dialog()).toHaveAttribute('open');
     // explicit controls still close it
     await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
-    expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(onOpenChange).toHaveBeenCalledWith(false, { reason: 'close' });
   });
 
   it('reports a native close (e.g. form method="dialog") through onOpenChange', () => {
     const onOpenChange = vi.fn();
     render(<Example open onOpenChange={onOpenChange} />);
     act(() => dialog().close());
-    expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(onOpenChange).toHaveBeenCalledWith(false, { reason: 'native' });
   });
 
   it('works uncontrolled with defaultOpen', async () => {

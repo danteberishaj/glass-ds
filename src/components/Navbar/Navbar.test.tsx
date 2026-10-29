@@ -1,5 +1,6 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { ComponentProps } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { expectNoA11yViolations } from '../../test/axe';
 import { Navbar, NavbarActions, NavbarBrand, NavbarItem, NavbarLink, NavbarMenuButton, NavbarNav } from './Navbar';
@@ -30,7 +31,7 @@ describe('Navbar', () => {
   it('renders a banner with a labelled navigation list', () => {
     render(<Example />);
     expect(screen.getByRole('banner')).toBeInTheDocument();
-    const nav = screen.getByRole('navigation', { name: 'Main' });
+    const nav = screen.getByRole('navigation', { name: 'Primary' });
     expect(within(nav).getAllByRole('listitem')).toHaveLength(2);
   });
 
@@ -47,15 +48,20 @@ describe('Navbar', () => {
     expect(screen.queryByRole('link')).toBeNull();
   });
 
-  it('supports framework links through `as`', () => {
-    const RouterLink = ({ to, ...props }: { to: string } & React.ComponentProps<'a'>) => <a href={to} {...props} />;
+  it('supports framework links through `as`, with the component\'s own props typed', () => {
+    const RouterLink = ({ to, ...props }: { to: string } & ComponentProps<'a'>) => <a href={to} {...props} />;
     render(
-      // Extra props of an `as` component aren't in the static type (same as BreadcrumbLink).
-      <NavbarLink as={RouterLink} {...({ to: '/docs' } as object)}>
-        Docs
-      </NavbarLink>,
+      <>
+        <NavbarLink as={RouterLink} to="/docs" active>
+          Docs
+        </NavbarLink>
+        <NavbarBrand as={RouterLink} to="/">
+          Prism
+        </NavbarBrand>
+      </>,
     );
     expect(screen.getByRole('link', { name: 'Docs' })).toHaveAttribute('href', '/docs');
+    expect(screen.getByRole('link', { name: 'Prism' })).toHaveAttribute('href', '/');
   });
 
   it('menu button reflects open state in its name and aria-expanded', async () => {

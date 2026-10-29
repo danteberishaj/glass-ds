@@ -21,15 +21,17 @@ export function AvatarGroup({
   children,
   ...rest
 }: AvatarGroupProps) {
-  const items = Children.toArray(children).filter(isValidElement) as ReactElement<AvatarProps>[];
+  const items = Children.toArray(children).filter(isValidElement);
   const limit = max !== undefined && max >= 0 && max < items.length ? max : items.length;
   const hidden = items.length - limit;
+  // Only an Avatar understands `size`; anything else (a wrapper, a custom chip) renders untouched.
+  const isAvatar = (el: ReactElement): el is ReactElement<AvatarProps> => el.type === Avatar;
 
   return (
     <div data-size={size} className={cx(styles.group, className)} {...rest}>
       {items
         .slice(0, limit)
-        .map((child) => (child.props.size ? child : cloneElement(child, { size })))}
+        .map((child) => (isAvatar(child) && !child.props.size ? cloneElement(child, { size }) : child))}
       {hidden > 0 && (
         <Avatar alt={overflowLabel(hidden)} fallback={`+${hidden}`} size={size} className={styles.overflow} />
       )}

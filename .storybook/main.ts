@@ -7,11 +7,8 @@ const config: StorybookConfig = {
   typescript: { reactDocgen: 'react-docgen-typescript' },
   // The library build config (lib mode, externals) must not leak into the Storybook app build.
   viteFinal: (viteConfig) => {
-    if (viteConfig.build) {
-      delete viteConfig.build.lib;
-      delete viteConfig.build.rollupOptions;
-    }
-    return viteConfig;
+    // Keep plugins and CSS module naming; drop every library-build option.
+    return { ...viteConfig, build: {} };
   },
 };
 

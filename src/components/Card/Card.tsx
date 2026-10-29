@@ -1,4 +1,4 @@
-import type { ComponentPropsWithRef } from 'react';
+import type { ComponentPropsWithRef, ElementType } from 'react';
 import { cx } from '../../utils/cx';
 import { GLASS_SHEEN_CLASS } from '../../utils/glass';
 import { Glass, type GlassProps } from '../Glass';
@@ -9,7 +9,8 @@ import styles from './Card.module.css';
  * Dot-notation properties are lost across the React Server Component boundary.
  */
 
-export type CardProps = GlassProps & {
+/** Same `as` generic as Glass: `<Card as="article">`, `<Card as="a" href="…">`. Default `div`. */
+export type CardProps<T extends ElementType = 'div'> = GlassProps<T> & {
   /**
    * Hover lift, raised shadow and a sheen sweep, for cards that are (or wrap) one link or action.
    * Purely visual: it sets `data-interactive`, so Card stays server-safe. Make the card's content
@@ -18,14 +19,20 @@ export type CardProps = GlassProps & {
   interactive?: boolean;
 };
 
-export function Card({ className, intensity = 'regular', radius = 'xl', interactive = false, ...rest }: CardProps) {
+export function Card<T extends ElementType = 'div'>({
+  className,
+  intensity = 'regular',
+  radius = 'xl',
+  interactive = false,
+  ...rest
+}: CardProps<T>) {
   return (
     <Glass
       intensity={intensity}
       radius={radius}
       data-interactive={interactive || undefined}
       className={cx(styles.root, interactive && GLASS_SHEEN_CLASS, className)}
-      {...rest}
+      {...(rest as GlassProps)}
     />
   );
 }

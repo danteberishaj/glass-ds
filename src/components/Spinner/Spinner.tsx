@@ -1,10 +1,12 @@
 import type { ComponentPropsWithRef } from 'react';
+import type { Size, Tone } from '../../types';
 import { cx } from '../../utils/cx';
 import { SR_ONLY_CLASS } from '../../utils/sr-only';
 import styles from './Spinner.module.css';
 
-export type SpinnerSize = 'sm' | 'md' | 'lg';
-export type SpinnerTone = 'accent' | 'neutral' | 'current';
+export type SpinnerSize = Size;
+/** `current` inherits the text colour, e.g. inside a Button. */
+export type SpinnerTone = Extract<Tone, 'accent' | 'neutral'> | 'current';
 
 export type SpinnerProps = Omit<ComponentPropsWithRef<'span'>, 'children'> & {
   /** Read by screen readers (visually hidden). */

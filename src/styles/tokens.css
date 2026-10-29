@@ -28,6 +28,7 @@
     --gds-color-amber-400: 251 191 36;
     --gds-color-amber-500: 245 158 11;
     --gds-color-amber-700: 180 83 9;
+    --gds-color-amber-800: 146 64 14;
     --gds-color-sky-400: 56 189 248;
     --gds-color-sky-500: 14 165 233;
     --gds-color-sky-700: 3 105 161;
@@ -56,7 +57,7 @@
     --gds-space-12: 48px;
     --gds-space-16: 64px;
     --gds-space-px: 1px;
-    --gds-space-0_5: 2px;
+    --gds-space-0-5: 2px;
     --gds-font-family-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     --gds-font-family-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     --gds-font-size-xs: 0.75rem;
@@ -85,6 +86,15 @@
     --gds-control-height-sm: 32px;
     --gds-control-height-md: 40px;
     --gds-control-height-lg: 48px;
+    --gds-control-box-sm: 16px;
+    --gds-control-box-md: 20px;
+    --gds-control-switch-track-w-sm: 36px;
+    --gds-control-switch-track-w-md: 44px;
+    --gds-control-switch-track-h-sm: 20px;
+    --gds-control-switch-track-h-md: 24px;
+    --gds-control-slider-track: 6px;
+    --gds-control-slider-thumb: 20px;
+    --gds-control-border-width: 1.5px;
     --gds-size-navbar: 64px;
     --gds-size-sidebar: 264px;
     --gds-size-sidebar-collapsed: 72px;
@@ -124,6 +134,7 @@
     --gds-success: rgb(21 128 61);
     --gds-success-glass: rgb(34 197 94 / 0.18);
     --gds-warning: rgb(180 83 9);
+    --gds-warning-text: rgb(146 64 14);
     --gds-warning-glass: rgb(245 158 11 / 0.2);
     --gds-info: rgb(3 105 161);
     --gds-info-glass: rgb(14 165 233 / 0.18);
@@ -160,6 +171,7 @@
       --gds-success: rgb(74 222 128);
       --gds-success-glass: rgb(74 222 128 / 0.18);
       --gds-warning: rgb(251 191 36);
+      --gds-warning-text: rgb(251 191 36);
       --gds-warning-glass: rgb(251 191 36 / 0.18);
       --gds-info: rgb(56 189 248);
       --gds-info-glass: rgb(56 189 248 / 0.18);
@@ -196,6 +208,7 @@
     --gds-success: rgb(74 222 128);
     --gds-success-glass: rgb(74 222 128 / 0.18);
     --gds-warning: rgb(251 191 36);
+    --gds-warning-text: rgb(251 191 36);
     --gds-warning-glass: rgb(251 191 36 / 0.18);
     --gds-info: rgb(56 189 248);
     --gds-info-glass: rgb(56 189 248 / 0.18);
@@ -231,6 +244,7 @@
     --gds-success: rgb(21 128 61);
     --gds-success-glass: rgb(34 197 94 / 0.18);
     --gds-warning: rgb(180 83 9);
+    --gds-warning-text: rgb(146 64 14);
     --gds-warning-glass: rgb(245 158 11 / 0.2);
     --gds-info: rgb(3 105 161);
     --gds-info-glass: rgb(14 165 233 / 0.18);

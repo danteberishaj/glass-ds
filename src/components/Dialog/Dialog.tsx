@@ -9,7 +9,13 @@ import { DialogRoot, type DialogRootProps } from './DialogRoot';
  */
 
 export { DialogTitle, DialogDescription, DialogClose } from './DialogRoot';
-export type { DialogTitleProps, DialogDescriptionProps, DialogCloseProps } from './DialogRoot';
+export type {
+  DialogTitleProps,
+  DialogDescriptionProps,
+  DialogCloseProps,
+  DialogOpenChangeReason,
+  DialogOpenChangeDetails,
+} from './DialogRoot';
 
 export type DialogSize = 'sm' | 'md' | 'lg';
 

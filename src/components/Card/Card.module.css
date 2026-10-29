@@ -22,7 +22,7 @@
 
   .root[data-interactive]:is(:hover, :focus-visible, :has(:focus-visible)) {
     box-shadow: var(--gds-shadow-glass-raised);
-    transform: translateY(calc(var(--gds-space-0_5) * -1));
+    transform: translateY(calc(var(--gds-space-0-5) * -1));
   }
 
   .root[data-interactive]:active {

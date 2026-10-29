@@ -98,9 +98,11 @@
     font-weight: var(--gds-font-weight-semibold);
   }
 
-  /* Child combinators keep these from leaking into a nested table. */
+  /* Child combinators keep these from leaking into a nested table. The base selector owns the transition. */
   .body > .row {
-    transition: background-color var(--gds-duration-fast) var(--gds-easing-standard);
+    transition-property: background-color;
+    transition-duration: var(--gds-duration-fast);
+    transition-timing-function: var(--gds-easing-standard);
   }
 
   .table[data-striped] > .body > .row:nth-child(even) {
@@ -111,8 +113,9 @@
     background-color: var(--gds-accent-glass);
   }
 
+  /* Selected: the lighter selected surface, so a hovered row (accent tint) still reads differently. */
   .table > .body > .row[data-state='selected'] {
-    background-color: var(--gds-accent-glass);
+    background-color: var(--gds-surface-selected);
   }
 
   /* Sticky header: an opaque fill, because rows scroll underneath it (no glass-in-glass). */
@@ -125,7 +128,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     .body > .row {
-      transition: none;
+      transition-duration: 0s;
     }
   }
 

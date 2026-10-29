@@ -1,74 +1,21 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState, type FormEvent } from 'react';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { expectNoA11yViolations } from '../../test/axe';
+import { installPopoverPolyfill, isPopoverOpen as isOpen, uninstallPopoverPolyfill } from '../../test/popover-polyfill';
 import { Dialog, DialogTitle } from '../Dialog';
 import { DatePicker, type DatePickerProps } from './DatePicker';
 
-/*
- * jsdom has no Popover API. Minimal stand-in: show/hide/togglePopover with beforetoggle/toggle
- * events (carrying oldState/newState) and `popovertarget` invokers. Light dismiss isn't modelled.
- * Candidate for src/test/setup.ts once more components use popovers.
- */
-const POPOVER_OPEN = 'data-test-popover-open';
-let uninstallPopover: (() => void) | undefined;
-
-function installPopoverPolyfill() {
-  const proto = HTMLElement.prototype as HTMLElement & Record<string, unknown>;
-  if (typeof proto.showPopover === 'function') return undefined;
-  const fire = (el: HTMLElement, type: 'beforetoggle' | 'toggle', newState: 'open' | 'closed') => {
-    const event = new Event(type, { cancelable: type === 'beforetoggle' });
-    Object.assign(event, { newState, oldState: newState === 'open' ? 'closed' : 'open' });
-    el.dispatchEvent(event);
-  };
-  proto.showPopover = function showPopover(this: HTMLElement) {
-    if (this.hasAttribute(POPOVER_OPEN)) return;
-    fire(this, 'beforetoggle', 'open');
-    this.setAttribute(POPOVER_OPEN, '');
-    // jsdom's UA sheet hides [popover] unless :popover-open matches, which it never does here.
-    this.style.setProperty('display', 'block');
-    fire(this, 'toggle', 'open');
-  };
-  proto.hidePopover = function hidePopover(this: HTMLElement) {
-    if (!this.hasAttribute(POPOVER_OPEN)) return;
-    fire(this, 'beforetoggle', 'closed');
-    this.removeAttribute(POPOVER_OPEN);
-    this.style.removeProperty('display');
-    fire(this, 'toggle', 'closed');
-  };
-  proto.togglePopover = function togglePopover(this: HTMLElement) {
-    if (this.hasAttribute(POPOVER_OPEN)) this.hidePopover();
-    else this.showPopover();
-    return this.hasAttribute(POPOVER_OPEN);
-  };
-  const onClick = (event: MouseEvent) => {
-    const invoker = (event.target as Element | null)?.closest?.('button[popovertarget]');
-    if (!(invoker instanceof HTMLButtonElement) || invoker.disabled || event.defaultPrevented) return;
-    document.getElementById(invoker.getAttribute('popovertarget') ?? '')?.togglePopover();
-  };
-  document.addEventListener('click', onClick);
-  return () => {
-    document.removeEventListener('click', onClick);
-    const writable = proto as unknown as Record<string, unknown>;
-    delete writable.showPopover;
-    delete writable.hidePopover;
-    delete writable.togglePopover;
-  };
-}
+// The Popover API stand-in is installed for every test file by src/test/setup.ts (src/test/popover-polyfill.ts).
 
 const day = (y: number, m: number, d: number) => new Date(y, m - 1, d, 12);
-const isOpen = (el: HTMLElement) => el.hasAttribute(POPOVER_OPEN);
 
 function renderPicker(props: Partial<DatePickerProps> = {}) {
   return render(<DatePicker label="Start date" locale="en-US" weekStartsOn={1} {...props} />);
 }
 
 describe('DatePicker', () => {
-  beforeAll(() => {
-    uninstallPopover = installPopoverPolyfill();
-  });
-  afterAll(() => uninstallPopover?.());
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date(2026, 9, 29, 9, 30));
@@ -273,8 +220,39 @@ describe('DatePicker', () => {
     expect(screen.getByRole('button', { name: 'Tuesday, October 20, 2026' })).toHaveAttribute('aria-disabled', 'true');
   });
 
+  it('clearable: clear button and Backspace/Delete clear the value and report null', async () => {
+    const onValueChange = vi.fn();
+    renderPicker({ clearable: true, defaultValue: day(2026, 10, 29), onValueChange });
+    const trigger = screen.getByRole('button', { name: 'Start date Oct 29, 2026' });
+    await userEvent.click(screen.getByRole('button', { name: 'Clear date' }));
+    expect(onValueChange).toHaveBeenCalledExactlyOnceWith(null);
+    expect(trigger).toHaveAccessibleName('Start date Pick a date');
+    expect(trigger).toHaveFocus();
+    // hidden while empty
+    expect(screen.queryByRole('button', { name: 'Clear date' })).toBeNull();
+    await userEvent.keyboard('{Backspace}');
+    expect(onValueChange).toHaveBeenCalledOnce();
+
+    // pick again, then clear from the keyboard
+    await userEvent.click(trigger);
+    await userEvent.click(screen.getByRole('button', { name: 'Friday, October 9, 2026' }));
+    expect(trigger).toHaveAccessibleName('Start date Oct 9, 2026');
+    await userEvent.keyboard('{Delete}');
+    expect(onValueChange).toHaveBeenLastCalledWith(null);
+    expect(trigger).toHaveAccessibleName('Start date Pick a date');
+  });
+
+  it('without clearable, Backspace does nothing and no clear button renders', async () => {
+    const onValueChange = vi.fn();
+    renderPicker({ defaultValue: day(2026, 10, 29), onValueChange });
+    expect(screen.queryByRole('button', { name: 'Clear date' })).toBeNull();
+    screen.getByRole('button', { name: /Start date/ }).focus();
+    await userEvent.keyboard('{Backspace}');
+    expect(onValueChange).not.toHaveBeenCalled();
+  });
+
   it('falls back to state when the Popover API is missing', async () => {
-    uninstallPopover?.();
+    uninstallPopoverPolyfill();
     try {
       renderPicker();
       const trigger = screen.getByRole('button', { name: /Start date/ });
@@ -286,7 +264,7 @@ describe('DatePicker', () => {
       expect(trigger).toHaveAttribute('aria-expanded', 'false');
       expect(trigger).toHaveFocus();
     } finally {
-      uninstallPopover = installPopoverPolyfill();
+      installPopoverPolyfill();
     }
   });
 

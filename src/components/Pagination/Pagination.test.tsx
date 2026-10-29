@@ -1,5 +1,6 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { ComponentProps } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { expectNoA11yViolations } from '../../test/axe';
 import { getPaginationRange } from './getPaginationRange';
@@ -101,6 +102,44 @@ describe('Pagination', () => {
     const previous = screen.getByRole('link', { name: 'Previous page' });
     expect(previous).toHaveAttribute('aria-disabled', 'true');
     expect(previous).not.toHaveAttribute('href');
+  });
+
+  it('link mode calls onPageChange too, and renders through linkComponent', async () => {
+    const onPageChange = vi.fn();
+    const RouterLink = ({ href, ...props }: ComponentProps<'a'>) => <a data-router="" href={href} {...props} />;
+    render(
+      <Pagination page={1} totalPages={5} getHref={(p) => `?page=${p}`} linkComponent={RouterLink} onPageChange={onPageChange} />,
+    );
+    const next = screen.getByRole('link', { name: 'Next page' });
+    expect(next).toHaveAttribute('data-router');
+    expect(next).toHaveAttribute('href', '?page=2');
+    await userEvent.click(next);
+    await userEvent.click(screen.getByRole('link', { name: 'Page 5' }));
+    expect(onPageChange.mock.calls).toEqual([[2], [5]]);
+    // the disabled end stays a plain, inert anchor
+    expect(screen.getByRole('link', { name: 'Previous page' })).not.toHaveAttribute('data-router');
+  });
+
+  it('showEdges adds first/last controls, disabled at the bounds', async () => {
+    const onPageChange = vi.fn();
+    const { rerender } = render(<Pagination page={3} totalPages={10} showEdges onPageChange={onPageChange} />);
+    const nav = screen.getByRole('navigation');
+    const buttons = within(nav).getAllByRole('button');
+    expect(buttons[0]).toHaveAccessibleName('First page');
+    expect(buttons.at(-1)).toHaveAccessibleName('Last page');
+    await userEvent.click(screen.getByRole('button', { name: 'First page' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Last page' }));
+    expect(onPageChange.mock.calls).toEqual([[1], [10]]);
+    rerender(<Pagination page={1} totalPages={10} showEdges firstLabel="Erste" lastLabel="Letzte" onPageChange={onPageChange} />);
+    expect(screen.getByRole('button', { name: 'Erste' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Letzte' })).toBeEnabled();
+    expect(screen.queryByRole('button', { name: 'First page' })).toBeNull();
+  });
+
+  it('puts the glass on the list track, not on each control', () => {
+    render(<Pagination page={1} totalPages={3} onPageChange={() => {}} />);
+    expect(screen.getByRole('list')).toHaveClass('gds-glass');
+    expect(screen.getByRole('button', { name: 'Page 2' })).not.toHaveClass('gds-glass');
   });
 
   it('supports localised labels and sizes', () => {

@@ -103,13 +103,13 @@ function Shell(args: AppShellProps) {
         <Page />
       </AppShell>
       <Drawer side="left" size="sm" open={menuOpen} onOpenChange={setMenuOpen}>
-        <DrawerClose />
         <DrawerHeader>
           <DrawerTitle>Menu</DrawerTitle>
         </DrawerHeader>
         <DrawerBody>
-          <DemoSidebar surface="none" aria-label="Mobile menu" />
+          <DemoSidebar id="demo-sidebar-mobile" surface="none" navLabel="Mobile navigation" />
         </DrawerBody>
+        <DrawerClose />
       </Drawer>
     </>
   );

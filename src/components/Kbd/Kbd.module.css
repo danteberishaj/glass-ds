@@ -32,7 +32,7 @@
   .root[data-size] {
     --_fill: var(--gds-surface-glass-strong);
     --_blur: var(--gds-blur-sm);
-    border-block-end-width: 2px;
+    border-block-end-width: var(--gds-space-0-5);
     box-shadow:
       inset 0 1px 0 var(--gds-border-glass-highlight),
       inset 0 -1px 0 var(--gds-border-subtle);

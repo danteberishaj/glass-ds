@@ -13,8 +13,10 @@ import {
   type ToggleEvent,
 } from 'react';
 import { useAnchoredPosition, type AnchoredPlacement } from '../../internal/useAnchoredPosition';
+import { useClientEnvironment, warnServerRenderWithoutLocale } from '../../internal/useClientEnvironment';
 import { cx } from '../../utils/cx';
 import { GLASS_CLASS } from '../../utils/glass';
+import { SR_ONLY_CLASS } from '../../utils/sr-only';
 import { Calendar } from '../Calendar';
 import { toDay, toISODate, type WeekDay } from '../Calendar/date-utils';
 import styles from './DatePicker.module.css';
@@ -39,14 +41,24 @@ export type DatePickerProps = Omit<
   value?: Date | null;
   /** Initially selected day (uncontrolled). */
   defaultValue?: Date | null;
-  /** Called with the picked day (pinned to local noon). */
+  /** Called with the picked day (pinned to local noon), or `null` when cleared (see `clearable`). */
   onValueChange?: (value: Date | null) => void;
+  /**
+   * Shows a "Clear date" button next to the value (only while a date is selected), and lets Backspace /
+   * Delete on the focused trigger clear it. `onValueChange(null)` is only ever called by these.
+   */
+  clearable?: boolean;
+  /** Accessible name of the clear button. */
+  clearLabel?: string;
   /** Earliest selectable day (inclusive). */
   min?: Date | null;
   /** Latest selectable day (inclusive). */
   max?: Date | null;
   isDateDisabled?: (date: Date) => boolean;
-  /** BCP 47 tag for the field text and the calendar. Pass one when server-rendering, so both sides agree. */
+  /**
+   * BCP 47 tag for the field text and the calendar. Default: `<html lang>`, else the browser language, read on the
+   * client after hydration. Pass one when server-rendering, so both sides agree.
+   */
   locale?: string;
   weekStartsOn?: WeekDay;
   /** Shown when nothing is selected. */
@@ -76,6 +88,8 @@ export function DatePicker({
   value: valueProp,
   defaultValue = null,
   onValueChange,
+  clearable = false,
+  clearLabel = 'Clear date',
   min,
   max,
   isDateDisabled,
@@ -91,6 +105,7 @@ export function DatePicker({
   id,
   className,
   onClick,
+  onKeyDown,
   'aria-describedby': describedBy,
   ...rest
 }: DatePickerProps) {
@@ -116,8 +131,14 @@ export function DatePicker({
 
   useAnchoredPosition(fieldRef, popoverRef, { open, placement });
 
-  const formatter = useMemo(() => new Intl.DateTimeFormat(locale, format), [locale, format]);
+  // Without `locale`, the field text is formatted with the client's language after hydration (the server
+  // HTML uses the server's default; the dev warning below says so).
+  const env = useClientEnvironment();
+  warnServerRenderWithoutLocale('DatePicker', locale);
+  const resolvedLocale = locale ?? env?.locale;
+  const formatter = useMemo(() => new Intl.DateTimeFormat(resolvedLocale, format), [resolvedLocale, format]);
   const text = value ? formatter.format(value) : placeholder;
+  const showClear = clearable && value !== null && !disabled;
 
   const getTrigger = () => fieldRef.current?.querySelector<HTMLButtonElement>('button') ?? null;
 
@@ -188,6 +209,20 @@ export function DatePicker({
     getTrigger()?.focus();
   }
 
+  function clear() {
+    if (!showClear) return;
+    if (valueProp === undefined) setUncontrolledValue(null);
+    onValueChange?.(null);
+    getTrigger()?.focus();
+  }
+
+  function handleTriggerKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
+    onKeyDown?.(event);
+    if (event.defaultPrevented || !showClear || (event.key !== 'Backspace' && event.key !== 'Delete')) return;
+    event.preventDefault();
+    clear();
+  }
+
   return (
     <div className={cx(styles.root, className)}>
       <label id={labelId} htmlFor={triggerId} className={styles.label}>
@@ -211,8 +246,10 @@ export function DatePicker({
           aria-describedby={cx(describedBy, hintId, errorId) || undefined}
           aria-invalid={error ? true : undefined}
           data-placeholder={value ? undefined : ''}
+          data-clearable={showClear || undefined}
           className={cx(GLASS_CLASS, styles.trigger)}
           onClick={handleTriggerClick}
+          onKeyDown={handleTriggerKeyDown}
           {...rest}
         >
           <span id={valueId} className={styles.value}>
@@ -220,6 +257,15 @@ export function DatePicker({
           </span>
           <span className={styles.icon} aria-hidden="true" />
         </button>
+        {showClear && (
+          // A sibling, not a child: buttons can't nest. Sits over the trigger's end padding.
+          <button type="button" className={styles.clear} onClick={clear}>
+            <svg className={styles.clearGlyph} viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <path d="M4 4l8 8M12 4l-8 8" />
+            </svg>
+            <span className={SR_ONLY_CLASS}>{clearLabel}</span>
+          </button>
+        )}
       </div>
       {name !== undefined && <input type="hidden" name={name} value={value ? toISODate(value) : ''} />}
       {hint && (

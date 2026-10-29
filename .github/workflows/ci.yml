@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # tokens:check, typecheck, lint, unit + story + SSR tests, library build, consumer package checks
+      - run: npm run verify
+      # Installs the packed tarball into examples/next-app and runs `next build`
+      - run: npm run test:next
+      - run: npm run build-storybook

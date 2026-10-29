@@ -11,6 +11,8 @@ describe('Avatar', () => {
     expect(getInitials('  plato ')).toBe('P');
     expect(getInitials('Ada King Lovelace')).toBe('AL');
     expect(getInitials('')).toBe('');
+    // Code points, not UTF-16 units: an astral character is one initial, not half of one.
+    expect(getInitials('𝔄da 😀ob')).toBe('𝔄😀');
   });
 
   it('is named by alt and shows initials without src', () => {
@@ -88,6 +90,18 @@ describe('AvatarGroup', () => {
     );
     expect(screen.getByRole('img', { name: 'Ada' })).toHaveAttribute('data-size', 'lg');
     expect(screen.getByRole('img', { name: 'Grace' })).toHaveAttribute('data-size', 'sm');
+  });
+
+  it('leaves non-Avatar children untouched', () => {
+    render(
+      <AvatarGroup size="lg">
+        <Avatar alt="Ada" />
+        <span data-testid="chip">+</span>
+      </AvatarGroup>,
+    );
+    expect(screen.getByRole('img', { name: 'Ada' })).toHaveAttribute('data-size', 'lg');
+    expect(screen.getByTestId('chip')).not.toHaveAttribute('size');
+    expect(screen.getByTestId('chip')).not.toHaveAttribute('data-size');
   });
 
   it('supports a custom overflow label and has no a11y violations', async () => {

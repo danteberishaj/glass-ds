@@ -1,15 +1,17 @@
 import { Meta } from '@storybook/addon-docs/blocks';
+import { TokenTables } from './TokenTables';
 
 <Meta title="Foundations/Tokens" />
 
 # Design tokens
 
 Tokens are written once in `src/tokens/tokens.ts`. `npm run tokens` turns them into CSS custom properties
-in `src/styles/tokens.css`, all prefixed `--gds-`.
+in `src/styles/tokens.css`, all prefixed `--gds-`. The same objects are exported to JavaScript as
+`import { primitive, semantic } from 'glass-ds/tokens'`.
 
 | Tier | Example | Who uses it |
 | --- | --- | --- |
-| Primitive | `--gds-color-indigo-600`, `--gds-blur-md` | Only semantic tokens |
+| Primitive | `--gds-color-indigo-600`, `--gds-blur-md` | Semantic tokens, and app backdrops |
 | Semantic | `--gds-surface-glass`, `--gds-text-primary` | Components and consumers |
 | Component | `--_fill`, `--_height` (private, inside a CSS Module) | That one component |
 
@@ -26,3 +28,9 @@ Every glass surface falls back to an opaque `--gds-surface-solid*` when:
 - the user prefers reduced transparency
 - the user prefers more contrast
 - forced-colors (Windows High Contrast) mode is on
+
+## Reference
+
+The tables below are generated from `tokens.ts` at build time.
+
+<TokenTables />

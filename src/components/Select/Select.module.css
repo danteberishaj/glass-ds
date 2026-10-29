@@ -1,19 +1,7 @@
+/* Wrapper, label, hint and error come from src/internal/field.module.css. */
 @layer gds.components {
-  .root {
-    display: flex;
-    flex-direction: column;
-    gap: var(--gds-space-2);
-    font-family: var(--gds-font-family-sans);
-  }
-
-  .label {
-    font-size: var(--gds-font-size-sm);
-    font-weight: var(--gds-font-weight-medium);
-    color: var(--gds-text-primary);
-  }
-
   .field {
-    --_chevron-size: 16px;
+    --_chevron-size: var(--gds-space-4);
 
     position: relative;
     display: flex;
@@ -38,27 +26,33 @@
     opacity: var(--gds-opacity-disabled);
   }
 
-  .field:has(.input[multiple])::after,
-  .field:has(.input[size]:not([size='1']))::after {
+  .field:has(.input[multiple])::after {
     display: none;
   }
 
   .input {
+    --_height: var(--gds-control-height-md);
+    --_padding-x: var(--gds-space-3);
+    --_font-size: var(--gds-font-size-sm);
+
     appearance: none;
     flex: 1;
     min-width: 0;
-    min-height: var(--gds-control-height-md);
+    min-height: var(--_height);
     margin: 0;
-    padding-inline: var(--gds-space-3) calc(var(--gds-space-3) * 2 + var(--_chevron-size));
+    padding-inline: var(--_padding-x) calc(var(--_padding-x) * 2 + var(--_chevron-size));
     border-radius: var(--gds-radius-md);
     font: inherit;
-    font-size: var(--gds-font-size-sm);
+    font-size: var(--_font-size);
     cursor: pointer;
   }
 
+  .input[data-size='sm'] { --_height: var(--gds-control-height-sm); --_padding-x: var(--gds-space-2); --_font-size: var(--gds-font-size-xs); }
+  .input[data-size='lg'] { --_height: var(--gds-control-height-lg); --_padding-x: var(--gds-space-4); --_font-size: var(--gds-font-size-md); }
+
   .input[multiple] {
     padding-block: var(--gds-space-2);
-    padding-inline-end: var(--gds-space-3);
+    padding-inline-end: var(--_padding-x);
   }
 
   /* Placeholder option selected: read as a placeholder, like TextField's. */
@@ -106,17 +100,6 @@
   .input:disabled {
     cursor: not-allowed;
     opacity: var(--gds-opacity-disabled);
-  }
-
-  .hint {
-    font-size: var(--gds-font-size-xs);
-    color: var(--gds-text-secondary);
-  }
-
-  .error {
-    font-size: var(--gds-font-size-xs);
-    font-weight: var(--gds-font-weight-medium);
-    color: var(--gds-danger);
   }
 
   @media (forced-colors: active) {

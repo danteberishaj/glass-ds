@@ -1,4 +1,5 @@
 import type { ComponentPropsWithRef, ElementType } from 'react';
+import type { PolymorphicProps } from '../../internal/polymorphic';
 import { cx } from '../../utils/cx';
 import { SR_ONLY_CLASS } from '../../utils/sr-only';
 import styles from './Breadcrumb.module.css';
@@ -24,12 +25,20 @@ export function BreadcrumbItem({ className, ...rest }: BreadcrumbItemProps) {
   return <li className={cx(styles.item, className)} {...rest} />;
 }
 
-export type BreadcrumbLinkProps = ComponentPropsWithRef<'a'> & {
-  /** Element or component to render, e.g. `Link` from next/link. Defaults to `a`. */
-  as?: ElementType;
-};
+/**
+ * Generic over the rendered element: `<BreadcrumbLink as={Link} to="/x">` type-checks `Link`'s own props.
+ * Without a type argument it is the plain `<a>` props.
+ */
+export type BreadcrumbLinkProps<T extends ElementType = 'a'> = PolymorphicProps<
+  T,
+  {
+    /** Element or component to render, e.g. `Link` from next/link. Defaults to `a`. */
+    as?: T;
+  }
+>;
 
-export function BreadcrumbLink({ as: Component = 'a', className, ...rest }: BreadcrumbLinkProps) {
+export function BreadcrumbLink<T extends ElementType = 'a'>({ as, className, ...rest }: BreadcrumbLinkProps<T>) {
+  const Component: ElementType = as ?? 'a';
   return <Component className={cx(styles.link, className)} {...rest} />;
 }
 

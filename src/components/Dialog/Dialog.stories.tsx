@@ -21,7 +21,6 @@ function FormDialog(args: DialogProps) {
     <>
       <Button onClick={() => setOpen(true)}>Edit profile</Button>
       <Dialog {...args} open={open} onOpenChange={setOpen}>
-        <DialogClose />
         <DialogHeader>
           <DialogTitle>Edit profile</DialogTitle>
           <DialogDescription>Update how others see you. Changes apply immediately.</DialogDescription>
@@ -45,6 +44,8 @@ function FormDialog(args: DialogProps) {
             Save changes
           </Button>
         </DialogFooter>
+        {/* Last in DOM order: screen readers reach the title and content before the close control. */}
+        <DialogClose />
       </Dialog>
     </>
   );
@@ -120,7 +121,6 @@ export const ScrollingBody: Story = {
       <>
         <Button onClick={() => setOpen(true)}>Read terms</Button>
         <Dialog {...args} open={open} onOpenChange={setOpen}>
-          <DialogClose />
           <DialogHeader>
             <DialogTitle>Terms of service</DialogTitle>
           </DialogHeader>
@@ -135,6 +135,7 @@ export const ScrollingBody: Story = {
           <DialogFooter>
             <DialogClose variant="solid">I agree</DialogClose>
           </DialogFooter>
+          <DialogClose />
         </Dialog>
       </>
     );

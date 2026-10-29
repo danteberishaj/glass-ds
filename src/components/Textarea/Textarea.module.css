@@ -1,28 +1,23 @@
+/* Wrapper, label, hint and error come from src/internal/field.module.css. */
 @layer gds.components {
-  .root {
-    display: flex;
-    flex-direction: column;
-    gap: var(--gds-space-2);
-    font-family: var(--gds-font-family-sans);
-  }
-
-  .label {
-    font-size: var(--gds-font-size-sm);
-    font-weight: var(--gds-font-weight-medium);
-    color: var(--gds-text-primary);
-  }
-
   .input {
+    --_height: var(--gds-control-height-md);
+    --_padding-x: var(--gds-space-3);
+    --_font-size: var(--gds-font-size-sm);
+
     box-sizing: border-box;
-    min-height: var(--gds-control-height-md);
+    min-height: var(--_height);
     padding-block: var(--gds-space-2);
-    padding-inline: var(--gds-space-3);
+    padding-inline: var(--_padding-x);
     border-radius: var(--gds-radius-md);
     font: inherit;
-    font-size: var(--gds-font-size-sm);
+    font-size: var(--_font-size);
     line-height: var(--gds-font-line-height-normal);
     resize: vertical;
   }
+
+  .input[data-size='sm'] { --_height: var(--gds-control-height-sm); --_padding-x: var(--gds-space-2); --_font-size: var(--gds-font-size-xs); }
+  .input[data-size='lg'] { --_height: var(--gds-control-height-lg); --_padding-x: var(--gds-space-4); --_font-size: var(--gds-font-size-md); }
 
   .input[data-resize='none'] { resize: none; }
   .input[data-resize='both'] { resize: both; }
@@ -57,17 +52,6 @@
     cursor: not-allowed;
     opacity: var(--gds-opacity-disabled);
     resize: none;
-  }
-
-  .hint {
-    font-size: var(--gds-font-size-xs);
-    color: var(--gds-text-secondary);
-  }
-
-  .error {
-    font-size: var(--gds-font-size-xs);
-    font-weight: var(--gds-font-weight-medium);
-    color: var(--gds-danger);
   }
 
   @media (prefers-reduced-motion: reduce) {

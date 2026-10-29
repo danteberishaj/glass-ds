@@ -34,8 +34,29 @@ describe('Button', () => {
     expect(onClick).not.toHaveBeenCalled();
   });
 
+  it('loading: blocks onClick, sets aria-busy/aria-disabled, shows a spinner and stays focusable', async () => {
+    const onClick = vi.fn();
+    render(<Button loading onClick={onClick}>Save</Button>);
+    const button = screen.getByRole('button', { name: 'Save' });
+    expect(button).toHaveAttribute('aria-busy', 'true');
+    expect(button).toHaveAttribute('aria-disabled', 'true');
+    expect(button).toHaveAttribute('data-loading');
+    expect(button).not.toBeDisabled();
+    expect(button.querySelector('[role="status"]')).toHaveAttribute('aria-hidden', 'true');
+    await userEvent.tab();
+    expect(button).toHaveFocus();
+    await userEvent.keyboard('{Enter}');
+    await userEvent.click(button);
+    expect(onClick).not.toHaveBeenCalled();
+  });
+
   it('has no a11y violations', async () => {
-    const { container } = render(<Button>Go</Button>);
+    const { container } = render(
+      <div>
+        <Button>Go</Button>
+        <Button loading>Saving</Button>
+      </div>,
+    );
     await expectNoA11yViolations(container);
   });
 });

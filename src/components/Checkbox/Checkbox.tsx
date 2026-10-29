@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useId, useRef, type ComponentPropsWithRef, type ReactNode } from 'react';
+import { useEffect, useRef, type ComponentPropsWithRef, type ReactNode } from 'react';
+import { FieldLabel, FieldMessages, fieldStyles, useFieldIds } from '../../internal/field';
 import { cx } from '../../utils/cx';
 import styles from './Checkbox.module.css';
 
@@ -10,10 +11,16 @@ type CheckboxLabelProps =
   | { /** Visible label. Required unless `aria-label` is given. */ label: ReactNode }
   | { label?: undefined; 'aria-label': string };
 
+/**
+ * `className` and `style` go to the wrapper `<div>`; `ref` and every other prop go to the
+ * native `<input type="checkbox">`.
+ */
 export type CheckboxProps = Omit<ComponentPropsWithRef<'input'>, 'type' | 'size' | 'children'> &
   CheckboxLabelProps & {
+    /** Visually hides the label (still announced). */
+    hideLabel?: boolean;
     hint?: ReactNode;
-    /** Error message. When set, the input is marked invalid and announces it. */
+    /** Error message. When set, the input is marked invalid and the message is announced. */
     error?: ReactNode;
     /** Shows a dash and is announced as "mixed". Purely visual state: it does not change `checked`. */
     indeterminate?: boolean;
@@ -26,54 +33,55 @@ export type CheckboxProps = Omit<ComponentPropsWithRef<'input'>, 'type' | 'size'
  */
 export function Checkbox({
   label,
+  hideLabel,
   hint,
   error,
   indeterminate = false,
   size = 'md',
+  checked,
+  required,
+  onChange,
   id,
   className,
-  'aria-describedby': describedBy,
+  style,
+  'aria-describedby': ariaDescribedBy,
   ...rest
 }: CheckboxProps) {
-  const autoId = useId();
-  const inputId = id ?? autoId;
-  const hintId = hint ? `${inputId}-hint` : undefined;
-  const errorId = error ? `${inputId}-error` : undefined;
+  const { inputId, hintId, errorId, describedBy } = useFieldIds({ id, hint, error, describedBy: ariaDescribedBy });
   // The caller owns the input's ref, so reach the input through our own root instead of merging refs.
   const rootRef = useRef<HTMLDivElement>(null);
 
+  // A click clears the DOM's `indeterminate`, and React only re-applies `checked`: re-assert it after
+  // every render that could follow a toggle (and in onChange below, for the same reason).
   useEffect(() => {
     const input = rootRef.current?.querySelector('input');
     if (input) input.indeterminate = indeterminate;
-  }, [indeterminate]);
+  }, [indeterminate, checked]);
 
   return (
-    <div ref={rootRef} className={cx(styles.root, className)} data-size={size}>
+    <div ref={rootRef} className={cx(fieldStyles.root, styles.root, className)} style={style} data-size={size}>
       <div className={styles.row}>
         <input
           id={inputId}
           type="checkbox"
           className={styles.control}
+          checked={checked}
+          required={required}
           aria-invalid={error ? true : undefined}
-          aria-describedby={cx(describedBy, hintId, errorId) || undefined}
+          aria-describedby={describedBy}
           {...rest}
+          onChange={(event) => {
+            onChange?.(event);
+            event.currentTarget.indeterminate = indeterminate;
+          }}
         />
         {label != null && (
-          <label htmlFor={inputId} className={styles.label}>
+          <FieldLabel htmlFor={inputId} hidden={hideLabel} required={required} className={styles.label}>
             {label}
-          </label>
+          </FieldLabel>
         )}
       </div>
-      {hint && (
-        <span id={hintId} className={styles.hint}>
-          {hint}
-        </span>
-      )}
-      {error && (
-        <span id={errorId} className={styles.error}>
-          {error}
-        </span>
-      )}
+      <FieldMessages hint={hint} error={error} hintId={hintId} errorId={errorId} className={styles.message} />
     </div>
   );
 }

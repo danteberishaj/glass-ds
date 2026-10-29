@@ -117,11 +117,38 @@ describe('useAnchoredPosition', () => {
     expect(el.style.top).toBe('492px');
   });
 
-  it('removes its listeners when closed', () => {
+  it('removes its listeners, disconnects the observer and cancels a pending frame when closed', () => {
+    const observe = vi.fn();
+    const disconnect = vi.fn();
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        observe = observe;
+        disconnect = disconnect;
+        unobserve = vi.fn();
+      },
+    );
+    const vvAdd = vi.fn();
+    const vvRemove = vi.fn();
+    vi.stubGlobal('visualViewport', { addEventListener: vvAdd, removeEventListener: vvRemove });
     const remove = vi.spyOn(window, 'removeEventListener');
-    const { rerender } = render(<Harness open />);
-    rerender(<Harness open={false} />);
-    expect(remove).toHaveBeenCalledWith('scroll', expect.any(Function), { capture: true });
-    expect(remove).toHaveBeenCalledWith('resize', expect.any(Function));
+    const cancel = vi.spyOn(window, 'cancelAnimationFrame');
+    try {
+      const { rerender } = render(<Harness open />);
+      expect(observe).toHaveBeenCalledTimes(2); // anchor + floating
+      expect(vvAdd).toHaveBeenCalledWith('resize', expect.any(Function), { passive: true });
+      expect(vvAdd).toHaveBeenCalledWith('scroll', expect.any(Function), { passive: true });
+      // a scroll schedules a frame; closing before it runs must cancel it
+      window.dispatchEvent(new Event('scroll'));
+      rerender(<Harness open={false} />);
+      expect(remove).toHaveBeenCalledWith('scroll', expect.any(Function), { capture: true });
+      expect(remove).toHaveBeenCalledWith('resize', expect.any(Function));
+      expect(vvRemove).toHaveBeenCalledWith('resize', expect.any(Function));
+      expect(vvRemove).toHaveBeenCalledWith('scroll', expect.any(Function));
+      expect(disconnect).toHaveBeenCalledOnce();
+      expect(cancel).toHaveBeenCalledOnce();
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

@@ -26,6 +26,35 @@ describe('Checkbox', () => {
     expect(ref.current?.indeterminate).toBe(false);
   });
 
+  it('keeps indeterminate after a click on a controlled, unchecked box', async () => {
+    const onChange = vi.fn();
+    const ref = createRef<HTMLInputElement>();
+    const { rerender } = render(<Checkbox label="All" checked={false} indeterminate onChange={onChange} ref={ref} />);
+    expect(ref.current?.indeterminate).toBe(true);
+    await userEvent.click(screen.getByRole('checkbox'));
+    expect(onChange).toHaveBeenCalledOnce();
+    // The parent keeps the same props (e.g. it ignored the change): the dash must not disappear.
+    rerender(<Checkbox label="All" checked={false} indeterminate onChange={onChange} ref={ref} />);
+    expect(ref.current?.indeterminate).toBe(true);
+    expect(ref.current).not.toBeChecked();
+  });
+
+  it('puts className and style on the wrapper, ref and the rest on the input', () => {
+    const ref = createRef<HTMLInputElement>();
+    render(<Checkbox label="Accept" ref={ref} className="mine" style={{ margin: 4 }} name="terms" />);
+    expect(ref.current).toHaveAttribute('name', 'terms');
+    expect(ref.current).not.toHaveAttribute('style');
+    const wrapper = ref.current!.closest('.root')!;
+    expect(wrapper).toHaveClass('mine');
+    expect(wrapper).toHaveStyle({ margin: '4px' });
+  });
+
+  it('marks required with a hidden asterisk and keeps the native attribute', () => {
+    render(<Checkbox label="Accept" required />);
+    expect(screen.getByRole('checkbox', { name: 'Accept' })).toBeRequired();
+    expect(screen.getByText('*')).toHaveAttribute('aria-hidden', 'true');
+  });
+
   it('supports callback refs', () => {
     const ref = vi.fn();
     render(<Checkbox label="All" ref={ref} />);
@@ -67,6 +96,7 @@ describe('Checkbox', () => {
         <Checkbox label="Accept" hint="Hint" error="Error" />
         <Checkbox label="All" indeterminate />
         <Checkbox aria-label="Row" />
+        <Checkbox label="Hidden" hideLabel required />
       </div>,
     );
     await expectNoA11yViolations(container);

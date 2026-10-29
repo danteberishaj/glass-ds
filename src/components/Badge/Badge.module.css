@@ -30,7 +30,8 @@
 
   .root[data-tone='accent'] { --_fg: var(--gds-accent); --_tint: var(--gds-accent-glass); --_solid: var(--gds-accent); --_on-solid: var(--gds-text-on-accent); }
   .root[data-tone='success'] { --_fg: var(--gds-success); --_tint: var(--gds-success-glass); --_solid: var(--gds-success); --_on-solid: var(--gds-text-on-accent); }
-  .root[data-tone='warning'] { --_fg: var(--gds-warning); --_tint: var(--gds-warning-glass); --_solid: var(--gds-warning); --_on-solid: var(--gds-text-on-accent); }
+  /* warning-text (amber-800 in light) for text: plain amber-700 is < 4.5:1 on light glass. The solid fill keeps amber-700. */
+  .root[data-tone='warning'] { --_fg: var(--gds-warning-text); --_tint: var(--gds-warning-glass); --_solid: var(--gds-warning); --_on-solid: var(--gds-text-on-accent); }
   .root[data-tone='danger'] { --_fg: var(--gds-danger-text); --_tint: var(--gds-danger-glass); --_solid: var(--gds-danger); --_on-solid: var(--gds-text-on-accent); }
   .root[data-tone='info'] { --_fg: var(--gds-info); --_tint: var(--gds-info-glass); --_solid: var(--gds-info); --_on-solid: var(--gds-text-on-accent); }
 

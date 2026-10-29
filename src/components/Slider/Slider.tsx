@@ -2,7 +2,6 @@
 
 import {
   useEffect,
-  useId,
   useRef,
   useState,
   type ChangeEvent,
@@ -10,15 +9,22 @@ import {
   type CSSProperties,
   type ReactNode,
 } from 'react';
+import { FieldLabel, FieldMessages, fieldStyles, useFieldIds } from '../../internal/field';
 import { cx } from '../../utils/cx';
 import styles from './Slider.module.css';
 
+/**
+ * `className` and `style` go to the wrapper `<div>`; `ref` and every other prop go to the
+ * native `<input type="range">`.
+ */
 export type SliderProps = Omit<
   ComponentPropsWithRef<'input'>,
   'type' | 'size' | 'children' | 'value' | 'defaultValue' | 'min' | 'max' | 'step'
 > & {
-    /** Visible label. Required: a slider without a name is unusable with a screen reader. */
+    /** Visible label. Required: a slider without a name is unusable with a screen reader. Use `hideLabel` to keep it for screen readers only. */
     label: ReactNode;
+    /** Visually hides the label (still announced). */
+    hideLabel?: boolean;
     /** Controlled value. */
     value?: number;
     /** Initial value when uncontrolled. Defaults to the midpoint, like a native range input. */
@@ -32,6 +38,8 @@ export type SliderProps = Omit<
     /** Formats the visible value and sets `aria-valuetext` (e.g. `(v) => \`${v}%\``). */
     formatValue?: (value: number) => string;
     hint?: ReactNode;
+    /** Error message. When set, the slider is marked invalid and the message is announced. */
+    error?: ReactNode;
   };
 
 function midpoint(min: number, max: number, step: number) {
@@ -46,7 +54,9 @@ function midpoint(min: number, max: number, step: number) {
  */
 export function Slider({
   label,
+  hideLabel,
   hint,
+  error,
   value,
   defaultValue,
   onValueChange,
@@ -56,15 +66,14 @@ export function Slider({
   step = 1,
   showValue = false,
   formatValue,
+  required,
   id,
   className,
   style,
-  'aria-describedby': describedBy,
+  'aria-describedby': ariaDescribedBy,
   ...rest
 }: SliderProps) {
-  const autoId = useId();
-  const inputId = id ?? autoId;
-  const hintId = hint ? `${inputId}-hint` : undefined;
+  const { inputId, hintId, errorId, describedBy } = useFieldIds({ id, hint, error, describedBy: ariaDescribedBy });
   const rootRef = useRef<HTMLDivElement>(null);
   const [initial] = useState(() => defaultValue ?? midpoint(min, max, step));
   const [inner, setInner] = useState(initial);
@@ -84,11 +93,11 @@ export function Slider({
   }, [controlled, initial]);
 
   return (
-    <div ref={rootRef} className={cx(styles.root, className)}>
+    <div ref={rootRef} className={cx(fieldStyles.root, className)} style={style}>
       <div className={styles.header}>
-        <label htmlFor={inputId} className={styles.label}>
+        <FieldLabel htmlFor={inputId} hidden={hideLabel} required={required}>
           {label}
-        </label>
+        </FieldLabel>
         {showValue && (
           // The slider itself announces its value; the output is a visual duplicate.
           <output htmlFor={inputId} className={styles.value} aria-hidden="true">
@@ -102,10 +111,12 @@ export function Slider({
         min={min}
         max={max}
         step={step}
+        required={required}
         className={styles.input}
-        style={{ ...style, '--_progress': progress } as CSSProperties}
+        style={{ '--_progress': progress } as CSSProperties}
         aria-valuetext={formatValue ? display : undefined}
-        aria-describedby={cx(describedBy, hintId) || undefined}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={describedBy}
         {...(controlled ? { value } : { defaultValue: initial })}
         {...rest}
         onChange={(event) => {
@@ -115,11 +126,7 @@ export function Slider({
           onValueChange?.(next, event);
         }}
       />
-      {hint && (
-        <span id={hintId} className={styles.hint}>
-          {hint}
-        </span>
-      )}
+      <FieldMessages hint={hint} error={error} hintId={hintId} errorId={errorId} />
     </div>
   );
 }

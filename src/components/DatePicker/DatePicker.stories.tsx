@@ -26,6 +26,9 @@ export const WithValue: Story = { args: { defaultValue: day(2026, 10, 29) } };
 
 export const WithHint: Story = { args: { hint: 'The first day of your booking.' } };
 
+/** `clearable`: a "Clear date" button appears while a date is selected; Backspace/Delete on the field also clear. */
+export const Clearable: Story = { args: { clearable: true, defaultValue: day(2026, 10, 29) } };
+
 export const WithError: Story = {
   args: { error: 'Pick a date after today.', defaultValue: day(2020, 1, 1), required: true },
 };

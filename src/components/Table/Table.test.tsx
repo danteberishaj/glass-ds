@@ -95,6 +95,23 @@ describe('Table', () => {
     expect(within(table).getByRole('cell')).toHaveTextContent('Ada');
   });
 
+  it('forwards containerProps.ref to the glass wrapper', () => {
+    const containerRef = createRef<HTMLDivElement>();
+    const ref = createRef<HTMLTableElement>();
+    render(
+      <Table ref={ref} containerProps={{ ref: containerRef, style: { maxHeight: 200 } }}>
+        <TableBody>
+          <TableRow>
+            <TableCell>Ada</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>,
+    );
+    expect(containerRef.current).toHaveClass('gds-glass');
+    expect(containerRef.current).toHaveStyle({ maxHeight: '200px' });
+    expect(containerRef.current).toContainElement(ref.current);
+  });
+
   it('has no a11y violations', async () => {
     const { container } = render(<Example striped hoverable stickyHeader />);
     await expectNoA11yViolations(container);

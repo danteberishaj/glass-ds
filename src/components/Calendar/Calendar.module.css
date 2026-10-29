@@ -120,10 +120,9 @@
     cursor: pointer;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
-    transition:
-      background-color var(--gds-duration-fast) var(--gds-easing-standard),
-      color var(--gds-duration-fast) var(--gds-easing-standard),
-      transform var(--gds-duration-fast) var(--gds-easing-standard);
+    transition-property: background-color, color, transform;
+    transition-duration: var(--gds-duration-fast);
+    transition-timing-function: var(--gds-easing-standard);
   }
 
   .day:hover:not([aria-disabled='true']) {

@@ -17,4 +17,6 @@ export type {
   DrawerBodyProps,
   DrawerFooterProps,
   DrawerCloseProps,
+  DrawerOpenChangeReason,
+  DrawerOpenChangeDetails,
 } from './Drawer';

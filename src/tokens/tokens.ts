@@ -22,13 +22,13 @@ export const primitive = {
     pink: { 400: '244 114 182' },
     red: { 400: '248 113 113', 600: '220 38 38', 700: '185 28 28' },
     green: { 400: '74 222 128', 500: '34 197 94', 700: '21 128 61' },
-    amber: { 400: '251 191 36', 500: '245 158 11', 700: '180 83 9' },
+    amber: { 400: '251 191 36', 500: '245 158 11', 700: '180 83 9', 800: '146 64 14' },
     sky: { 400: '56 189 248', 500: '14 165 233', 700: '3 105 161' },
   },
   blur: { none: '0px', sm: '8px', md: '16px', lg: '24px', xl: '40px' },
   saturate: { regular: '160%', vivid: '200%' },
   radius: { none: '0px', sm: '8px', md: '12px', lg: '20px', xl: '28px', full: '9999px' },
-  space: { 0: '0px', px: '1px', '0_5': '2px', 1: '4px', 2: '8px', 3: '12px', 4: '16px', 5: '20px', 6: '24px', 8: '32px', 10: '40px', 12: '48px', 16: '64px' },
+  space: { 0: '0px', px: '1px', '0-5': '2px', 1: '4px', 2: '8px', 3: '12px', 4: '16px', 5: '20px', 6: '24px', 8: '32px', 10: '40px', 12: '48px', 16: '64px' },
   font: {
     family: {
       sans: "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
@@ -45,6 +45,15 @@ export const primitive = {
     springGentle: '480ms',
   },
   controlHeight: { sm: '32px', md: '40px', lg: '48px' },
+  // Geometry of the small form controls (box = checkbox/radio square, switch track, range slider).
+  control: {
+    box: { sm: '16px', md: '20px' },
+    switchTrackW: { sm: '36px', md: '44px' },
+    switchTrackH: { sm: '20px', md: '24px' },
+    sliderTrack: '6px',
+    sliderThumb: '20px',
+    borderWidth: '1.5px',
+  },
   size: { navbar: '64px', sidebar: '264px', sidebarCollapsed: '72px' },
   opacity: { disabled: '0.5', muted: '0.4', subdued: '0.72' },
   easing: {
@@ -64,79 +73,84 @@ export const primitive = {
 const rgb = (triplet: string, alpha = 1) => (alpha === 1 ? `rgb(${triplet})` : `rgb(${triplet} / ${alpha})`);
 const c = primitive.color;
 
-type SemanticTheme = Record<string, string>;
+/** Every semantic token must exist in both themes: `dark` is typed by the keys of `light`. */
+const light = {
+  // Glass fills — translucent; always paired with a solid fallback below.
+  'surface-glass-subtle': rgb(c.white, 0.25),
+  'surface-glass': rgb(c.white, 0.45),
+  'surface-glass-strong': rgb(c.white, 0.7),
+  // Opaque equivalents for no-backdrop-filter, reduced transparency and high contrast.
+  'surface-solid': rgb(c.slate[50]),
+  'surface-solid-strong': rgb(c.white),
+  'border-glass': rgb(c.white, 0.6),
+  'border-glass-highlight': rgb(c.white, 0.9),
+  'border-strong': rgb(c.slate[700]),
+  'text-primary': rgb(c.slate[950]),
+  'text-secondary': rgb(c.slate[700]),
+  'text-on-accent': rgb(c.white),
+  'accent': rgb(c.indigo[600]),
+  'accent-hover': rgb(c.indigo[700]),
+  'accent-glass': rgb(c.indigo[500], 0.18),
+  'danger': rgb(c.red[600]),
+  // Status: the solid colour is for text/icons on glass (AA on light glass); *-glass is a tinted fill.
+  'danger-text': rgb(c.red[700]),
+  'danger-glass': rgb(c.red[400], 0.18),
+  'success': rgb(c.green[700]),
+  'success-glass': rgb(c.green[500], 0.18),
+  'warning': rgb(c.amber[700]),
+  // amber-700 is < 4.5:1 on light glass; text and icons in the warning tone use this darker one.
+  'warning-text': rgb(c.amber[800]),
+  'warning-glass': rgb(c.amber[500], 0.2),
+  'info': rgb(c.sky[700]),
+  'info-glass': rgb(c.sky[500], 0.18),
+  // Structural
+  'border-subtle': rgb(c.slate[900], 0.1),
+  'surface-track': rgb(c.slate[900], 0.12),
+  'surface-scrim': rgb(c.slate[900], 0.3),
+  'surface-selected': rgb(c.white, 0.85),
+  'surface-stripe': rgb(c.slate[900], 0.04),
+  'focus-ring': rgb(c.indigo[600]),
+  'shadow-glass': `0 8px 32px ${rgb(c.slate[900], 0.12)}, inset 0 1px 0 ${rgb(c.white, 0.6)}`,
+  'shadow-glass-raised': `0 16px 48px ${rgb(c.slate[900], 0.18)}, inset 0 1px 0 ${rgb(c.white, 0.7)}`,
+} satisfies Record<string, string>;
 
-export const semantic: { light: SemanticTheme; dark: SemanticTheme } = {
-  light: {
-    // Glass fills — translucent; always paired with a solid fallback below.
-    'surface-glass-subtle': rgb(c.white, 0.25),
-    'surface-glass': rgb(c.white, 0.45),
-    'surface-glass-strong': rgb(c.white, 0.7),
-    // Opaque equivalents for no-backdrop-filter, reduced transparency and high contrast.
-    'surface-solid': rgb(c.slate[50]),
-    'surface-solid-strong': rgb(c.white),
-    'border-glass': rgb(c.white, 0.6),
-    'border-glass-highlight': rgb(c.white, 0.9),
-    'border-strong': rgb(c.slate[700]),
-    'text-primary': rgb(c.slate[950]),
-    'text-secondary': rgb(c.slate[700]),
-    'text-on-accent': rgb(c.white),
-    'accent': rgb(c.indigo[600]),
-    'accent-hover': rgb(c.indigo[700]),
-    'accent-glass': rgb(c.indigo[500], 0.18),
-    'danger': rgb(c.red[600]),
-    // Status: the solid colour is for text/icons on glass (AA on light glass); *-glass is a tinted fill.
-    'danger-text': rgb(c.red[700]),
-    'danger-glass': rgb(c.red[400], 0.18),
-    'success': rgb(c.green[700]),
-    'success-glass': rgb(c.green[500], 0.18),
-    'warning': rgb(c.amber[700]),
-    'warning-glass': rgb(c.amber[500], 0.2),
-    'info': rgb(c.sky[700]),
-    'info-glass': rgb(c.sky[500], 0.18),
-    // Structural
-    'border-subtle': rgb(c.slate[900], 0.1),
-    'surface-track': rgb(c.slate[900], 0.12),
-    'surface-scrim': rgb(c.slate[900], 0.3),
-    'surface-selected': rgb(c.white, 0.85),
-    'surface-stripe': rgb(c.slate[900], 0.04),
-    'focus-ring': rgb(c.indigo[600]),
-    'shadow-glass': `0 8px 32px ${rgb(c.slate[900], 0.12)}, inset 0 1px 0 ${rgb(c.white, 0.6)}`,
-    'shadow-glass-raised': `0 16px 48px ${rgb(c.slate[900], 0.18)}, inset 0 1px 0 ${rgb(c.white, 0.7)}`,
-  },
-  dark: {
-    'surface-glass-subtle': rgb(c.slate[900], 0.25),
-    'surface-glass': rgb(c.slate[900], 0.45),
-    'surface-glass-strong': rgb(c.slate[900], 0.7),
-    'surface-solid': rgb(c.slate[900]),
-    'surface-solid-strong': rgb(c.slate[950]),
-    'border-glass': rgb(c.white, 0.14),
-    'border-glass-highlight': rgb(c.white, 0.28),
-    'border-strong': rgb(c.slate[300]),
-    'text-primary': rgb(c.slate[50]),
-    'text-secondary': rgb(c.slate[300]),
-    'text-on-accent': rgb(c.slate[950]), // indigo-400 is too light for white text
-    'accent': rgb(c.indigo[400]),
-    'accent-hover': rgb(c.indigo[300]),
-    'accent-glass': rgb(c.indigo[400], 0.22),
-    'danger': rgb(c.red[400]),
-    'danger-text': rgb(c.red[400]),
-    'danger-glass': rgb(c.red[400], 0.2),
-    'success': rgb(c.green[400]),
-    'success-glass': rgb(c.green[400], 0.18),
-    'warning': rgb(c.amber[400]),
-    'warning-glass': rgb(c.amber[400], 0.18),
-    'info': rgb(c.sky[400]),
-    'info-glass': rgb(c.sky[400], 0.18),
-    'border-subtle': rgb(c.white, 0.1),
-    'surface-track': rgb(c.white, 0.14),
-    'surface-scrim': rgb(c.black, 0.5),
-    'surface-selected': rgb(c.white, 0.12),
-    'surface-stripe': rgb(c.white, 0.04),
-    'focus-ring': rgb(c.indigo[300]),
-    'shadow-glass': `0 8px 32px ${rgb(c.black, 0.4)}, inset 0 1px 0 ${rgb(c.white, 0.08)}`,
-    'shadow-glass-raised': `0 16px 48px ${rgb(c.black, 0.5)}, inset 0 1px 0 ${rgb(c.white, 0.12)}`,
-  },
+export type SemanticToken = keyof typeof light;
+
+const dark: Record<SemanticToken, string> = {
+  'surface-glass-subtle': rgb(c.slate[900], 0.25),
+  'surface-glass': rgb(c.slate[900], 0.45),
+  'surface-glass-strong': rgb(c.slate[900], 0.7),
+  'surface-solid': rgb(c.slate[900]),
+  'surface-solid-strong': rgb(c.slate[950]),
+  'border-glass': rgb(c.white, 0.14),
+  'border-glass-highlight': rgb(c.white, 0.28),
+  'border-strong': rgb(c.slate[300]),
+  'text-primary': rgb(c.slate[50]),
+  'text-secondary': rgb(c.slate[300]),
+  'text-on-accent': rgb(c.slate[950]), // indigo-400 is too light for white text
+  'accent': rgb(c.indigo[400]),
+  'accent-hover': rgb(c.indigo[300]),
+  'accent-glass': rgb(c.indigo[400], 0.22),
+  'danger': rgb(c.red[400]),
+  'danger-text': rgb(c.red[400]),
+  'danger-glass': rgb(c.red[400], 0.2),
+  'success': rgb(c.green[400]),
+  'success-glass': rgb(c.green[400], 0.18),
+  'warning': rgb(c.amber[400]),
+  'warning-text': rgb(c.amber[400]),
+  'warning-glass': rgb(c.amber[400], 0.18),
+  'info': rgb(c.sky[400]),
+  'info-glass': rgb(c.sky[400], 0.18),
+  'border-subtle': rgb(c.white, 0.1),
+  'surface-track': rgb(c.white, 0.14),
+  'surface-scrim': rgb(c.black, 0.5),
+  'surface-selected': rgb(c.white, 0.12),
+  'surface-stripe': rgb(c.white, 0.04),
+  'focus-ring': rgb(c.indigo[300]),
+  'shadow-glass': `0 8px 32px ${rgb(c.black, 0.4)}, inset 0 1px 0 ${rgb(c.white, 0.08)}`,
+  'shadow-glass-raised': `0 16px 48px ${rgb(c.black, 0.5)}, inset 0 1px 0 ${rgb(c.white, 0.12)}`,
 };
+
+export const semantic = { light, dark };
 
 /** Contrast: light accent (indigo-600) + white and dark accent (indigo-400) + slate-950 both pass WCAG AA. */

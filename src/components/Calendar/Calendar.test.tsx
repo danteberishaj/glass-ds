@@ -51,9 +51,10 @@ describe('Calendar', () => {
     expect(screen.getAllByRole('button').filter((b) => b.tabIndex === 0)).toHaveLength(3); // + prev/next
     unmount();
 
-    renderCalendar();
+    const second = renderCalendar();
     expect(cellButton('Thursday, October 29, 2026')).toHaveAttribute('tabindex', '0');
-    cleanupAndRender({ defaultMonth: day(2026, 12, 1), min: day(2026, 12, 3) });
+    second.unmount();
+    renderCalendar({ defaultMonth: day(2026, 12, 1), min: day(2026, 12, 3) });
     expect(cellButton('Thursday, December 3, 2026')).toHaveAttribute('tabindex', '0');
   });
 
@@ -259,9 +260,27 @@ describe('Calendar', () => {
     );
     await expectNoA11yViolations(container);
   });
-});
 
-function cleanupAndRender(props: Partial<CalendarProps>) {
-  document.body.innerHTML = '';
-  return renderCalendar(props);
-}
+  it('clears the selection pop when the month changes', async () => {
+    renderCalendar();
+    await userEvent.click(cellButton('Friday, October 16, 2026'));
+    expect(cellButton('Friday, October 16, 2026')).toHaveAttribute('data-pop');
+    await userEvent.click(screen.getByRole('button', { name: 'Next month' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Previous month' }));
+    expect(cellButton('Friday, October 16, 2026').closest('td')).toHaveAttribute('aria-selected', 'true');
+    expect(cellButton('Friday, October 16, 2026')).not.toHaveAttribute('data-pop');
+  });
+
+  it('reads today, locale and the week start from the client environment when not passed', () => {
+    const lang = document.documentElement.lang;
+    document.documentElement.lang = 'de-DE';
+    try {
+      render(<Calendar />);
+      expect(screen.getByRole('grid', { name: 'Oktober 2026' })).toBeInTheDocument();
+      expect(screen.getAllByRole('columnheader')[0]).toHaveAttribute('abbr', 'Montag');
+      expect(screen.getByRole('button', { name: 'Donnerstag, 29. Oktober 2026' })).toHaveAttribute('aria-current', 'date');
+    } finally {
+      document.documentElement.lang = lang;
+    }
+  });
+});

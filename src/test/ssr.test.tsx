@@ -4,7 +4,7 @@
  * and every component must render to a string on the server. Add each new component here.
  */
 import { renderToString } from 'react-dom/server';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import * as gds from '../index';
 
 describe('SSR', () => {
@@ -141,6 +141,7 @@ describe('SSR', () => {
 
   it('renders date inputs', () => {
     const day = new Date(2026, 9, 29, 12);
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const html = renderToString(
       <>
         <gds.Calendar locale="en-US" defaultValue={day} aria-label="Inline" />
@@ -148,6 +149,10 @@ describe('SSR', () => {
         <gds.DatePicker label="Empty" />
       </>,
     );
+    // Server-rendering without `locale` warns once (dev only): the text may differ from the client's language.
+    expect(warn).toHaveBeenCalledOnce();
+    expect(warn.mock.calls[0]?.[0]).toMatch(/locale/);
+    warn.mockRestore();
     expect(html).toContain('role="grid"');
     expect(html).toContain('aria-selected="true"');
     expect(html).toContain('popover="auto"');
@@ -155,7 +160,9 @@ describe('SSR', () => {
     expect(html).toContain('aria-expanded="false"');
     expect(html).toContain('type="hidden" name="start" value="2026-10-29"');
     expect(html).toContain('Oct 29, 2026');
-    // "today" depends on the client clock and positioning runs in effects, so neither is in the HTML.
+    // Today, locale and the week start come from the client environment (useClientEnvironment, server
+    // snapshot null): no "today" marker in the HTML, and an empty calendar shows a placeholder month
+    // until hydration. Positioning runs in effects, so no data-placement either.
     expect(html).not.toContain('aria-current="date"');
     expect(html).not.toContain('data-placement');
   });
@@ -202,7 +209,8 @@ describe('SSR', () => {
       </gds.AppShell>,
     );
     expect(html).toContain('<header');
-    expect(html).toContain('<aside');
+    expect(html).toContain('aria-label="Primary"'); // NavbarNav landmark
+    expect(html).toContain('aria-label="Sidebar navigation"'); // SidebarNav landmark (the Sidebar root is a div)
     expect(html).toContain('<main id="main-content"');
     expect(html).toContain('href="#main-content"');
     expect(html).toContain('aria-current="page"');

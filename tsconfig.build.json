@@ -4,12 +4,22 @@
     "noEmit": false,
     "emitDeclarationOnly": true,
     "declaration": true,
-    "declarationMap": true,
     "allowImportingTsExtensions": false,
     "rootDir": "src",
     "outDir": "dist",
-    "types": ["vite/client"]
+    "types": [
+      "vite/client"
+    ]
   },
-  "include": ["src"],
-  "exclude": ["src/**/*.stories.tsx", "src/**/*.test.tsx", "src/**/*.test.ts", "src/test", "src/**/*.mdx"]
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "src/**/*.stories.tsx",
+    "src/**/*.test.tsx",
+    "src/**/*.test.ts",
+    "src/test",
+    "src/**/*.mdx",
+    "src/tokens/TokenTables.tsx"
+  ]
 }

@@ -23,6 +23,8 @@ export type {
   DialogBodyProps as DrawerBodyProps,
   DialogFooterProps as DrawerFooterProps,
   DialogCloseProps as DrawerCloseProps,
+  DialogOpenChangeReason as DrawerOpenChangeReason,
+  DialogOpenChangeDetails as DrawerOpenChangeDetails,
 } from '../Dialog/Dialog';
 
 export type DrawerSide = 'left' | 'right' | 'top' | 'bottom';

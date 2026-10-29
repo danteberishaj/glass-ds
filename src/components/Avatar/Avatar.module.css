@@ -2,7 +2,7 @@
   /* Glass ring: the root is a glass disc; the photo/initials sit inset by --_ring. */
   .root {
     --_size: var(--gds-space-10);
-    --_ring: var(--gds-space-0_5);
+    --_ring: var(--gds-space-0-5);
     --_font-size: var(--gds-font-size-sm);
 
     position: relative;

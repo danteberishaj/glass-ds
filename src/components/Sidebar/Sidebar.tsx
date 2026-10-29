@@ -1,4 +1,5 @@
 import type { ComponentPropsWithRef, ElementType, ReactNode } from 'react';
+import type { PolymorphicProps } from '../../internal/polymorphic';
 import { cx } from '../../utils/cx';
 import { GLASS_CLASS } from '../../utils/glass';
 import { SR_ONLY_CLASS } from '../../utils/sr-only';
@@ -8,10 +9,12 @@ import styles from './Sidebar.module.css';
 /*
  * Server-safe: no hooks or context. Collapsing is a prop (`collapsed`), so the caller owns the state;
  * every part reads it from the root's data attribute in CSS. Compound parts are flat named exports.
- * Structure: <aside> header · content(<nav><ul>groups…</ul></nav>) · footer </aside>
+ * Structure: <div> header · content(<nav><ul>groups…</ul></nav>) · footer </div>
+ * The root is a plain <div>: the landmark is the <nav> inside (SidebarNav), named "Sidebar navigation"
+ * by default. Wrap it in your own <aside> if the sidebar also carries non-navigation content.
  */
 
-export type SidebarProps = ComponentPropsWithRef<'aside'> & {
+export type SidebarProps = ComponentPropsWithRef<'div'> & {
   /** Icon-only rail. Labels stay in the DOM for screen readers. */
   collapsed?: boolean;
   /** Which edge it sits on; flips the edge border and the toggle chevron. */
@@ -35,12 +38,10 @@ export function Sidebar({
   intensity = 'regular',
   surface = 'glass',
   className,
-  'aria-label': ariaLabel = 'Sidebar',
   ...rest
 }: SidebarProps) {
   return (
-    <aside
-      aria-label={ariaLabel}
+    <div
       data-collapsed={collapsed ? '' : undefined}
       data-side={side}
       data-variant={variant}
@@ -69,26 +70,28 @@ export function SidebarFooter({ className, ...rest }: SidebarFooterProps) {
 }
 
 export type SidebarNavProps = ComponentPropsWithRef<'nav'>;
-/** Navigation landmark. Put one or more `SidebarGroup`s inside. */
-export function SidebarNav({ className, 'aria-label': ariaLabel = 'Main', ...rest }: SidebarNavProps) {
+/** Navigation landmark (named "Sidebar navigation" by default). Put one or more `SidebarGroup`s inside. */
+export function SidebarNav({ className, 'aria-label': ariaLabel = 'Sidebar navigation', ...rest }: SidebarNavProps) {
   return <nav aria-label={ariaLabel} className={cx(styles.nav, className)} {...rest} />;
 }
 
-export type SidebarGroupProps = Omit<ComponentPropsWithRef<'ul'>, 'title'> & {
+export type SidebarGroupProps = ComponentPropsWithRef<'div'> & {
   /** Visible section heading; also the list's accessible name. Hidden (but still announced) when collapsed. */
   label?: string;
+  /** Props for the inner `<ul>` (the root props go on the wrapping `<div>`). */
+  listProps?: ComponentPropsWithRef<'ul'>;
 };
 
-/** A labelled list of `SidebarItem`s. */
-export function SidebarGroup({ label, className, children, ...rest }: SidebarGroupProps) {
+/** A labelled list of `SidebarItem`s. The root is the wrapper div; `listProps` reaches the `<ul>`. */
+export function SidebarGroup({ label, listProps, className, children, ...rest }: SidebarGroupProps) {
   return (
-    <div className={cx(styles.group, className)}>
+    <div className={cx(styles.group, className)} {...rest}>
       {label && (
         <div className={styles.groupLabel} aria-hidden="true">
           {label}
         </div>
       )}
-      <ul aria-label={label} className={styles.list} {...rest}>
+      <ul aria-label={label} {...listProps} className={cx(styles.list, listProps?.className)}>
         {children}
       </ul>
     </div>
@@ -100,9 +103,7 @@ export function SidebarItem({ className, ...rest }: SidebarItemProps) {
   return <li className={cx(styles.item, className)} {...rest} />;
 }
 
-export type SidebarLinkProps = Omit<ComponentPropsWithRef<'a'>, 'children'> & {
-  /** Element or component to render, e.g. `Link` from next/link, or `button` for actions. Defaults to `a`. */
-  as?: ElementType;
+type SidebarLinkOwnProps = {
   /** Marks the current page (`aria-current="page"`). */
   active?: boolean;
   /** Decorative icon (hidden from assistive tech). Required for a useful collapsed rail. */
@@ -113,17 +114,32 @@ export type SidebarLinkProps = Omit<ComponentPropsWithRef<'a'>, 'children'> & {
   children: ReactNode;
 };
 
-export function SidebarLink({
-  as: Component = 'a',
+/**
+ * Generic over the rendered element: `<SidebarLink as={Link} to="/x">` type-checks `Link`'s own props,
+ * and `as="button"` exposes button props (`type` defaults to `button`). Without a type argument it is the
+ * plain `<a>` props.
+ */
+export type SidebarLinkProps<T extends ElementType = 'a'> = PolymorphicProps<
+  T,
+  SidebarLinkOwnProps & {
+    /** Element or component to render, e.g. `Link` from next/link, or `button` for actions. Defaults to `a`. */
+    as?: T;
+  }
+>;
+
+export function SidebarLink<T extends ElementType = 'a'>({
+  as,
   active = false,
   icon,
   badge,
   className,
   children,
   ...rest
-}: SidebarLinkProps) {
+}: SidebarLinkProps<T>) {
+  const Component: ElementType = as ?? 'a';
   return (
     <Component
+      type={Component === 'button' ? 'button' : undefined}
       aria-current={active ? 'page' : undefined}
       data-active={active ? '' : undefined}
       className={cx(styles.link, className)}

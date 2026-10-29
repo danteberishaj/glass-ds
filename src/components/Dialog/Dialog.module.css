@@ -95,6 +95,11 @@
     padding: var(--gds-space-6);
   }
 
+  /* Receives initial focus programmatically (tabIndex -1); the dialog itself is the visible frame. */
+  .panel:focus {
+    outline: none;
+  }
+
   .header {
     display: flex;
     flex-direction: column;

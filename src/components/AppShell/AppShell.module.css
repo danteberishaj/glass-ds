@@ -10,6 +10,17 @@
     color: var(--gds-text-primary);
   }
 
+  /* Column indices: the sidebar column is 1 (left) or 2 (right); main takes the other. */
+  .root {
+    --_sidebar-col: 1;
+    --_main-col: 2;
+  }
+
+  .root[data-sidebar-side='right'] {
+    --_sidebar-col: 2;
+    --_main-col: 1;
+  }
+
   .frame {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
@@ -17,20 +28,26 @@
     min-height: 100dvh;
   }
 
+  .root[data-sidebar-side='right'] .frame {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
   .root:not([data-has-sidebar]) .frame {
     grid-template-columns: minmax(0, 1fr);
   }
 
   /* sidebar-first: sidebar spans both rows, header + main stack beside it. */
-  .root[data-layout='sidebar-first'] .sidebar { grid-column: 1; grid-row: 1 / -1; }
-  .root[data-layout='sidebar-first'] .header { grid-column: -2; grid-row: 1; }
-  .root[data-layout='sidebar-first'] .main { grid-column: -2; grid-row: 2; }
+  .root[data-layout='sidebar-first'] .sidebar { grid-column: var(--_sidebar-col); grid-row: 1 / -1; }
+  .root[data-layout='sidebar-first'] .header { grid-column: var(--_main-col); grid-row: 1; }
+  .root[data-layout='sidebar-first'] .main { grid-column: var(--_main-col); grid-row: 2; }
 
   /* header-first: header spans the full width, sidebar + main share the row below. */
   .root[data-layout='header-first'] .header { grid-column: 1 / -1; grid-row: 1; }
-  .root[data-layout='header-first'] .sidebar { grid-column: 1; grid-row: 2; }
-  .root[data-layout='header-first'] .main { grid-column: -2; grid-row: 2; }
+  .root[data-layout='header-first'] .sidebar { grid-column: var(--_sidebar-col); grid-row: 2; }
+  .root[data-layout='header-first'] .main { grid-column: var(--_main-col); grid-row: 2; }
 
+  .root:not([data-has-sidebar]) .header,
+  .root:not([data-has-sidebar]) .main { grid-column: 1 / -1; }
   .root:not([data-has-header]) .main { grid-row: 1 / -1; }
 
   /*
@@ -47,9 +64,18 @@
     z-index: var(--gds-z-index-raised);
   }
 
+  /* header-first: the sticky sidebar starts below the header (navbar height + its floating gutter). */
+  .root[data-layout='header-first'] {
+    --_header-gutter: 0px;
+  }
+
+  .root[data-layout='header-first']:has(.header > [data-variant='floating']) {
+    --_header-gutter: calc(var(--gds-space-3) * 2);
+  }
+
   .root[data-layout='header-first'] .sidebar {
-    top: var(--gds-size-navbar);
-    height: calc(100dvh - var(--gds-size-navbar));
+    top: calc(var(--gds-size-navbar) + var(--_header-gutter));
+    height: calc(100dvh - var(--gds-size-navbar) - var(--_header-gutter));
   }
 
   .sidebar > * {
@@ -57,7 +83,13 @@
   }
 
   .sidebar > [data-variant='floating'] {
-    margin: var(--gds-space-3) 0 var(--gds-space-3) var(--gds-space-3);
+    margin-block: var(--gds-space-3);
+    margin-inline-start: var(--gds-space-3);
+  }
+
+  .root[data-sidebar-side='right'] .sidebar > [data-variant='floating'] {
+    margin-inline-start: 0;
+    margin-inline-end: var(--gds-space-3);
   }
 
   .header {
@@ -90,7 +122,10 @@
     font-weight: var(--gds-font-weight-semibold);
     text-decoration: none;
     transform: translateY(calc(-100% - var(--gds-space-6)));
-    transition: transform var(--gds-duration-spring-snappy) var(--gds-easing-spring-snappy);
+    /* Longhands: a linear() spring inside the shorthand invalidates it in older browsers (see GOTCHA). */
+    transition-property: transform;
+    transition-duration: var(--gds-duration-spring-snappy);
+    transition-timing-function: var(--gds-easing-spring-snappy);
   }
 
   .skipLink:focus-visible {

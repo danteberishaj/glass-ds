@@ -1,8 +1,12 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
 import { afterEach } from 'vitest';
+import { installPopoverPolyfill } from './popover-polyfill';
 
 afterEach(() => cleanup());
+
+// jsdom has no Popover API: a stand-in for DatePicker (and future popover-based components).
+installPopoverPolyfill();
 
 // jsdom has HTMLDialogElement but no show/showModal/close. Minimal stand-ins for Dialog/Drawer tests.
 if (typeof HTMLDialogElement !== 'undefined') {

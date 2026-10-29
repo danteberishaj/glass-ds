@@ -21,7 +21,6 @@ function DrawerDemo({ label = 'Open filters', ...args }: DrawerProps & { label?:
     <>
       <Button onClick={() => setOpen(true)}>{label}</Button>
       <Drawer {...args} open={open} onOpenChange={setOpen}>
-        <DrawerClose />
         <DrawerHeader>
           <DrawerTitle>Filters</DrawerTitle>
           <DrawerDescription>Narrow down the results.</DrawerDescription>
@@ -34,6 +33,7 @@ function DrawerDemo({ label = 'Open filters', ...args }: DrawerProps & { label?:
           <DrawerClose>Reset</DrawerClose>
           <DrawerClose variant="solid">Apply</DrawerClose>
         </DrawerFooter>
+        <DrawerClose />
       </Drawer>
     </>
   );

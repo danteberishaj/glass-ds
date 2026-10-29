@@ -15,12 +15,11 @@ function Example({ onOpenChange, ...props }: Partial<DrawerProps>) {
       <Drawer
         {...props}
         open={open}
-        onOpenChange={(next) => {
+        onOpenChange={(next, details) => {
           setOpen(next);
-          onOpenChange?.(next);
+          onOpenChange?.(next, details);
         }}
       >
-        <DrawerClose />
         <DrawerHeader>
           <DrawerTitle>Filters</DrawerTitle>
           <DrawerDescription>Narrow down the results.</DrawerDescription>
@@ -29,6 +28,7 @@ function Example({ onOpenChange, ...props }: Partial<DrawerProps>) {
         <DrawerFooter>
           <DrawerClose>Done</DrawerClose>
         </DrawerFooter>
+        <DrawerClose />
       </Drawer>
     </>
   );
@@ -59,8 +59,9 @@ describe('Drawer', () => {
     const dialog = screen.getByRole('dialog', { name: 'Filters' });
     expect(dialog).toHaveAccessibleDescription('Narrow down the results.');
 
-    await userEvent.type(screen.getByRole('button', { name: 'Done' }), '{Escape}');
-    expect(onOpenChange).toHaveBeenLastCalledWith(false);
+    // initial focus is on the panel inside the dialog, so the key reaches the dialog's keydown handler
+    await userEvent.keyboard('{Escape}');
+    expect(onOpenChange).toHaveBeenLastCalledWith(false, { reason: 'escape' });
     expect(drawer()).not.toHaveAttribute('open');
 
     await userEvent.click(screen.getByRole('button', { name: 'Open' }));

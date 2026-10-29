@@ -9,6 +9,7 @@ import styles from './AppShell.module.css';
  */
 
 export type AppShellLayout = 'sidebar-first' | 'header-first';
+export type AppShellSidebarSide = 'left' | 'right';
 export type AppShellBreakpoint = 'sm' | 'md' | 'lg' | 'never';
 
 export type AppShellProps = Omit<ComponentPropsWithRef<'div'>, 'children'> & {
@@ -19,6 +20,8 @@ export type AppShellProps = Omit<ComponentPropsWithRef<'div'>, 'children'> & {
    * `header-first`: the header spans the full width and the sidebar sits below it.
    */
   layout?: AppShellLayout;
+  /** Which side the sidebar column sits on. Pair it with `<Sidebar side="right">`. Defaults to `left`. */
+  sidebarSide?: AppShellSidebarSide;
   /** Below this width the sidebar column hides. sm 640px, md 768px, lg 1024px. Defaults to `md`. */
   sidebarBreakpoint?: AppShellBreakpoint;
   /** Id for the <main> element; the skip link targets it. Defaults to `main-content`. */
@@ -35,6 +38,7 @@ export function AppShell({
   header,
   sidebar,
   layout = 'sidebar-first',
+  sidebarSide = 'left',
   sidebarBreakpoint = 'md',
   mainId = 'main-content',
   skipLinkLabel = 'Skip to content',
@@ -46,6 +50,7 @@ export function AppShell({
   return (
     <div
       data-layout={layout}
+      data-sidebar-side={sidebarSide}
       data-breakpoint={sidebarBreakpoint}
       data-has-header={header ? '' : undefined}
       data-has-sidebar={sidebar ? '' : undefined}
@@ -56,8 +61,10 @@ export function AppShell({
         {skipLinkLabel}
       </a>
       <div className={styles.frame}>
+        {/* DOM order follows the visual order, so sequential focus and screen readers agree with the layout. */}
+        {layout === 'header-first' && header && <div className={styles.header}>{header}</div>}
         {sidebar && <div className={styles.sidebar}>{sidebar}</div>}
-        {header && <div className={styles.header}>{header}</div>}
+        {layout !== 'header-first' && header && <div className={styles.header}>{header}</div>}
         <main id={mainId} tabIndex={-1} {...mainProps} className={cx(styles.main, mainProps?.className)}>
           {children}
         </main>

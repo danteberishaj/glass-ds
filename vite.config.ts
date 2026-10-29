@@ -16,13 +16,16 @@ const isExternal = (id: string) => externals.some((dep) => id === dep || id.star
  * Bundlers drop module-level directives. Next.js needs `'use client'` at the top
  * of each emitted file that came from a client component, so we put it back.
  */
+// Leading comments are allowed before the directive.
+const USE_CLIENT = /^(\s*(\/\*[\s\S]*?\*\/|\/\/[^\n]*)\s*)*(['"])use client\3/;
+
 function preserveUseClient(): Plugin {
   const clientModules = new Set<string>();
   return {
     name: 'gds:preserve-use-client',
     apply: 'build',
     transform(code, id) {
-      if (/^\s*(['"])use client\1/.test(code)) clientModules.add(id);
+      if (USE_CLIENT.test(code)) clientModules.add(id);
       return null;
     },
     renderChunk(code, chunk) {
@@ -59,10 +62,13 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
     sourcemap: true,
+    // Readable JS for consumers' debugging; CSS is pure output, so minify it (~40% smaller).
     minify: false,
+    cssMinify: true,
     cssCodeSplit: false,
     lib: {
-      entry: 'src/index.ts',
+      // `tokens` is a second public entry (`glass-ds/tokens`) exposing the token objects to JS.
+      entry: { index: 'src/index.ts', 'tokens/tokens': 'src/tokens/tokens.ts' },
       formats: ['es'],
       cssFileName: 'glass-ds',
     },

@@ -4,21 +4,22 @@ import styles from './Separator.module.css';
 
 export type SeparatorOrientation = 'horizontal' | 'vertical';
 
-export type SeparatorProps = Omit<ComponentPropsWithRef<'div'>, 'children'> & {
+export type SeparatorProps = Omit<ComponentPropsWithRef<'hr'>, 'children'> & {
   orientation?: SeparatorOrientation;
   /**
    * Purely visual (default): hidden from assistive tech with `role="none"`.
-   * Set `false` when it divides content meaningfully (`role="separator"`).
+   * Set `false` when it divides content meaningfully: the native `<hr>` separator role, plus
+   * `aria-orientation="vertical"` when vertical (horizontal is the default and stays implicit).
    */
   decorative?: boolean;
 };
 
-/** Thin divider line. Hook-free (server-safe). */
+/** Thin divider line, a native `<hr>`. Hook-free (server-safe). */
 export function Separator({ orientation = 'horizontal', decorative = true, className, ...rest }: SeparatorProps) {
   return (
-    <div
-      role={decorative ? 'none' : 'separator'}
-      aria-orientation={decorative ? undefined : orientation}
+    <hr
+      role={decorative ? 'none' : undefined}
+      aria-orientation={!decorative && orientation === 'vertical' ? 'vertical' : undefined}
       data-orientation={orientation}
       className={cx(styles.root, className)}
       {...rest}

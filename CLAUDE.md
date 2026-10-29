@@ -17,6 +17,7 @@ A glassmorphism design system for React 19, shipped as an ESM library that must 
 | `npm run build` | Library build to `dist/` (JS + `.d.ts` + `glass-ds.css`) |
 | `npm run test:next` | Build, pack, install into `examples/next-app`, run `next build` |
 | `npm run build-storybook` | Static Storybook build |
+| `npm run test:package` | Consumer checks on `dist/`: types under `bundler` + `node16`, `import`/`require`, `'use client'` parity |
 | `npm run verify` | Everything above except Storybook and Next. Run before calling work done |
 
 Run `npm run test:next` whenever you touch the build config, `package.json` exports, a `'use client'`
@@ -28,11 +29,13 @@ boundary, or add a component.
 src/
   tokens/tokens.ts        single source of truth for tokens (no imports; Node runs it directly)
   styles/
-    index.css             global CSS entry, in order: layers → tokens → glass recipe
+    index.css             global CSS entry, in order: layers → tokens → glass recipe → utilities
     layers.css            @layer gds.tokens, gds.base, gds.components;
     tokens.css            GENERATED, committed, checked in CI (`tokens:check`)
-    glass.css             the one glass recipe, global class `.gds-glass`
-  utils/                  cx (clsx), GLASS_CLASS
+    glass.css             the one glass recipe (`.gds-glass`) and the sheen (`.gds-sheen`)
+    utilities.css         `.gds-sr-only`
+  utils/                  cx (clsx), GLASS_CLASS, GLASS_SHEEN_CLASS, SR_ONLY_CLASS
+  internal/               shared, non-exported modules (positioning hook, field chassis, polymorphic types)
   components/<Name>/
     <Name>.tsx            implementation
     <Name>.module.css     styles (CSS Modules → stable class `gds-<Name>-<local>`)
@@ -40,8 +43,9 @@ src/
     <Name>.test.tsx       behaviour + axe test (required for interactive components)
     index.ts              public exports for this component
   index.ts                public API: re-exports every component/index.ts
-  test/                   setup, axe helper, SSR test
+  test/                   setup, axe helper, SSR test, stories test (renders every story + axe)
 examples/next-app/        Next.js consumer used by `test:next`
+scripts/                  tokens generator, dist post-processing, consumer package checks, test:next
 ```
 
 ### Tokens: three tiers
@@ -90,7 +94,15 @@ themes or a JS theme provider without a reason recorded here.
 - **Compound components are flat named exports** (`Card`, `CardHeader`, `CardTitle`), never `Card.Header`.
   Dot properties don't survive the RSC client-reference boundary.
 - Native elements first: a `<button>` for actions (default `type="button"`), `<a>` for navigation,
-  `<label htmlFor>` for fields. ARIA only when there is no native equivalent.
+  `<label htmlFor>` for fields, `<hr>` for separators. ARIA only when there is no native equivalent.
+- **Form fields use the shared chassis** in `src/internal/field.tsx` (`useFieldIds`, `FieldLabel`, `FieldMessages`,
+  `RequiredMark`) and `field.module.css`. Convention for every field: `className` and `style` go to the wrapper,
+  `ref` and `...rest` go to the native control; `label` (or `hideLabel`), `hint`, `error` (announced via
+  `aria-live`), `required` (native + hidden `*`), `size` where it applies.
+- **Polymorphic `as`** uses `PolymorphicProps<T, Own>` from `src/internal/polymorphic.ts` so a component passed
+  as `as` type-checks its own props (links: Breadcrumb, Navbar, Sidebar; surfaces: Glass, Card).
+- **Shared `Tone` and `Size`** live in `src/types.ts`; components narrow them with `Extract<>`.
+- Buttons support `loading` (`aria-busy` + `aria-disabled`, still focusable); never set `disabled` to mean loading.
 - Headings take an `as` prop for level, so consumers keep a correct outline.
 - Public API changes go through `components/<Name>/index.ts` and `src/index.ts`. Export the props types too.
 - Don't add runtime dependencies without a strong reason (current: `clsx` only). Never add CSS-in-JS
@@ -108,6 +120,9 @@ themes or a JS theme provider without a reason recorded here.
 6. Run `npm run verify` and `npm run test:next`.
 
 ## Component inventory
+
+Tokens for control geometry live under `primitive.control` (`--gds-control-*`); `--gds-space-px` and
+`--gds-space-0-5` cover 1–2px lifts and strokes. Only the 2px focus ring is a literal.
 
 Benchmarked against the components shared by the most-starred React design systems (shadcn/ui, Ant Design, MUI, Chakra,
 Mantine, HeroUI), rebuilt glass-native on platform primitives (`<dialog>`, `<details>`, native inputs, no headless-UI dependency).
@@ -162,8 +177,24 @@ Demo and docs: Storybook **Foundations/Motion**.
   Toggles (`SidebarToggle`, `NavbarMenuButton`) only reflect it (`aria-expanded`, name, icon).
 - On small screens, hide the sidebar (AppShell `sidebarBreakpoint`) and render the same links in a `Drawer` opened by
   `NavbarMenuButton`. Inside the Drawer, use `<Sidebar surface="none">` so the glass isn't nested.
-- Links accept `as` (e.g. `next/link`) and `active` (`aria-current="page"`).
+- Links accept `as` (e.g. `next/link`) and `active` (`aria-current="page"`). `as="button"` defaults `type="button"`.
+- Default landmark labels are distinct: `NavbarNav` "Primary", `SidebarNav` "Sidebar navigation". The Sidebar root
+  is a plain `div`; the `nav` inside is the landmark.
+- Dialog/Drawer: `DialogTitle` is required; put an icon-only `<DialogClose />` last in the DOM; `onOpenChange`
+  receives `{ reason }`; `closeOnEscape` / `closeOnBackdropClick` refine `dismissible`.
+- Calendar/DatePicker read today, locale and week start from `useClientEnvironment()` after hydration. Pass
+  `locale` when server-rendering (a dev warning fires otherwise).
 - Storybook-only helpers (icons, demo compositions) live in `.storybook/`, never as named exports of a stories file.
+
+## Packaging rules
+
+- `src/index.ts` is the only place that imports global CSS. `scripts/finish-dist.ts` strips that import from
+  `dist/index.d.ts` and adds `.js` extensions to relative imports in every `.d.ts` (tsc emits them extensionless,
+  which breaks `moduleResolution: node16`). Never hand-edit `dist/`.
+- Every `exports` subpath needs a `types` target; CSS subpaths point at an `export {}` stub so TS 6's
+  `noUncheckedSideEffectImports` is satisfied.
+- `engines` is what consumers need (Node ≥ 20); `devEngines` is what this repo needs (Node ≥ 22.18 for type stripping).
+- `npm run test:package` must stay green; it is the regression test for all of the above.
 
 ## Glassmorphism principles
 
@@ -198,7 +229,8 @@ system with fixed architecture. In particular:
 
 ## Definition of done
 
-- `npm run verify` passes. `npm run test:next` passes if the change touched the build, exports, or a client boundary.
+- `npm run verify` passes (it includes rendering every story under jsdom with axe, and the consumer package checks).
+  `npm run test:next` passes if the change touched the build, exports, or a client boundary.
 - Stories exist and look right in light, dark, and on the plain background.
 - No hardcoded design values. No new `!important`. No `forwardRef`. No dot-notation compounds.
 - GOTCHA.md updated if you learned something the hard way.

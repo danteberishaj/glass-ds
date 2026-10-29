@@ -34,6 +34,9 @@ export const Sizes: Story = {
   ),
 };
 
+/** `showEdges`: first/last controls at the ends (labels via `firstLabel` / `lastLabel`). */
+export const WithEdges: Story = { args: { showEdges: true, page: 7, totalPages: 30 } };
+
 /** Link mode: `getHref` renders anchors, so it works from a Server Component. */
 export const Links: Story = {
   args: { onPageChange: undefined, getHref: (page: number) => `?page=${page}` },

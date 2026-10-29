@@ -1,2 +1,2 @@
 export { Glass } from './Glass';
-export type { GlassProps, GlassIntensity, GlassRadius } from './Glass';
+export type { GlassProps, GlassOwnProps, GlassIntensity, GlassRadius, GlassElevation } from './Glass';

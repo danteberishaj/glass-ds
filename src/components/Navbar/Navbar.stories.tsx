@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
-import { expect, userEvent, within } from 'storybook/test';
+import { expect, userEvent, waitFor, within } from 'storybook/test';
 import { LogoMark, SearchIcon } from '../../../.storybook/icons';
+import { SR_ONLY_CLASS } from '../../utils/sr-only';
 import { Avatar } from '../Avatar';
 import { Button } from '../Button';
 import { Drawer, DrawerBody, DrawerClose, DrawerHeader, DrawerTitle } from '../Drawer';
@@ -40,8 +41,9 @@ function Bar({ active = 'Overview', ...args }: NavbarProps & { active?: string }
           ))}
         </NavbarNav>
         <NavbarActions>
-          <Button variant="ghost" size="sm" aria-label="Search">
+          <Button variant="ghost" size="sm">
             <SearchIcon />
+            <span className={SR_ONLY_CLASS}>Search</span>
             <Kbd size="sm">⌘K</Kbd>
           </Button>
           <Button variant="solid" size="sm">
@@ -51,13 +53,12 @@ function Bar({ active = 'Overview', ...args }: NavbarProps & { active?: string }
         </NavbarActions>
       </Navbar>
       <Drawer id="navbar-drawer" side="left" size="sm" open={open} onOpenChange={setOpen}>
-        <DrawerClose />
         <DrawerHeader>
           <DrawerTitle>Menu</DrawerTitle>
         </DrawerHeader>
         <DrawerBody>
-          <Sidebar surface="none" aria-label="Mobile menu">
-            <SidebarNav>
+          <Sidebar surface="none">
+            <SidebarNav aria-label="Mobile navigation">
               <SidebarGroup>
                 {links.map((link) => (
                   <SidebarItem key={link}>
@@ -70,6 +71,7 @@ function Bar({ active = 'Overview', ...args }: NavbarProps & { active?: string }
             </SidebarNav>
           </Sidebar>
         </DrawerBody>
+        <DrawerClose />
       </Drawer>
     </>
   );
@@ -117,7 +119,8 @@ export const Collapsed: Story = {
     await expect(button).toBeVisible();
     await expect(canvas.queryByRole('navigation', { name: 'Main' })).toBeNull();
     await userEvent.click(button);
-    await expect(within(document.body).getByRole('dialog', { name: 'Menu' })).toBeVisible();
+    // The drawer fades in from opacity 0, so wait for it rather than asserting the first frame.
+    await waitFor(() => expect(within(document.body).getByRole('dialog', { name: 'Menu' })).toBeVisible());
   },
 };
 

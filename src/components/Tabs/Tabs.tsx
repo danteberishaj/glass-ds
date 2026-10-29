@@ -6,6 +6,7 @@ import {
   useCallback,
   useId,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type ComponentPropsWithRef,
@@ -81,6 +82,7 @@ export function Tabs({
   const isControlled = valueProp !== undefined;
   const value = isControlled ? valueProp : uncontrolled;
 
+  // Re-selecting the current tab is a no-op: no state write, no onValueChange.
   const select = useCallback(
     (next: string) => {
       if (next === value) return;
@@ -90,8 +92,13 @@ export function Tabs({
     [value, isControlled, onValueChange],
   );
 
+  const context = useMemo<TabsContextValue>(
+    () => ({ baseId, value, select, variant, size, orientation, activationMode }),
+    [baseId, value, select, variant, size, orientation, activationMode],
+  );
+
   return (
-    <TabsContext value={{ baseId, value, select, variant, size, orientation, activationMode }}>
+    <TabsContext value={context}>
       <div data-orientation={orientation} className={cx(styles.root, className)} {...rest} />
     </TabsContext>
   );
@@ -126,22 +133,48 @@ function syncIndicator(list: HTMLElement) {
   list.setAttribute('data-indicator-ready', '');
 }
 
+/**
+ * Roving tabindex fallback: when `value` names a disabled or absent tab, no tab would be in the tab
+ * order, so the first enabled tab takes tabIndex 0. Mirrors what Tab renders in the normal case
+ * (selected = 0, others = -1), so React's later attribute updates and this agree.
+ */
+function syncTabbable(list: HTMLElement, value: string | undefined) {
+  if (value === undefined) return; // nothing selected: every tab stays reachable (Tab renders 0)
+  const tabs = ownTabs(list);
+  const target =
+    tabs.find((tab) => tab.getAttribute('aria-selected') === 'true' && !tab.disabled) ?? tabs.find((tab) => !tab.disabled);
+  for (const tab of tabs) tab.tabIndex = tab === target ? 0 : -1;
+}
+
 export function TabList({ className, onKeyDown, children, ...rest }: TabListProps) {
   const { value, variant, size, orientation, activationMode, select } = useTabsContext('TabList');
   // Our own ref on the indicator (the caller owns the list's `ref`; we don't merge refs, see GOTCHA).
   const indicatorRef = useRef<HTMLSpanElement>(null);
+  const observerRef = useRef<ResizeObserver | null>(null);
 
-  // Re-measure on selection/appearance changes, and whenever the list or a tab resizes (fonts, wrapping).
+  // One observer per mount: re-measures whenever the list or a tab resizes (fonts, wrapping).
+  useLayoutEffect(() => {
+    const list = indicatorRef.current?.parentElement;
+    if (!list || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(() => syncIndicator(list));
+    observer.observe(list);
+    observerRef.current = observer;
+    return () => {
+      observer.disconnect();
+      observerRef.current = null;
+    };
+  }, []);
+
+  // Re-sync on selection/appearance changes (not on every render), and observe tabs added since
+  // (observing an element twice is a no-op).
   useLayoutEffect(() => {
     const list = indicatorRef.current?.parentElement;
     if (!list) return;
+    syncTabbable(list, value);
     syncIndicator(list);
-    if (typeof ResizeObserver === 'undefined') return;
-    const observer = new ResizeObserver(() => syncIndicator(list));
-    observer.observe(list);
-    for (const tab of ownTabs(list)) observer.observe(tab);
-    return () => observer.disconnect();
-  }, [value, variant, size, orientation, children]);
+    const observer = observerRef.current;
+    if (observer) for (const tab of ownTabs(list)) observer.observe(tab);
+  }, [value, variant, size, orientation]);
 
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     onKeyDown?.(event);

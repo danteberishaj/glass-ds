@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Button } from '../Button';
 import { Alert, type AlertTone } from './Alert';
 
 const tones: AlertTone[] = ['neutral', 'info', 'success', 'warning', 'danger'];
@@ -49,4 +50,18 @@ export const TitleOnly: Story = { args: { children: undefined, tone: 'success', 
 export const DescriptionOnly: Story = { args: { title: undefined, icon: undefined } };
 /** `urgent` switches to role="alert" (assertive). Use sparingly. */
 export const Urgent: Story = { args: { tone: 'danger', urgent: true, title: copy.danger[0], children: copy.danger[1], icon: <Icon tone="danger" /> } };
+/** `action` is a trailing slot for one or two small buttons (Retry, Undo, Dismiss). */
+export const WithAction: Story = {
+  args: {
+    tone: 'danger',
+    title: copy.danger[0],
+    children: copy.danger[1],
+    icon: <Icon tone="danger" />,
+    action: (
+      <Button size="sm" variant="ghost">
+        Retry
+      </Button>
+    ),
+  },
+};
 export const OnPlainBackground: Story = { render: allTones, parameters: { backdrop: 'plain' } };

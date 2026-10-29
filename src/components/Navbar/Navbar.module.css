@@ -128,7 +128,7 @@
 
   /* Menu button: hidden until the bar is narrower than its collapse point. */
   .menuButton {
-    --_line: var(--gds-space-0_5);
+    --_line: var(--gds-space-0-5);
 
     display: none;
     align-items: center;
@@ -142,7 +142,9 @@
     background: transparent;
     color: var(--gds-text-primary);
     cursor: pointer;
-    transition: background-color var(--gds-duration-fast) var(--gds-easing-out);
+    transition-property: background-color;
+    transition-duration: var(--gds-duration-fast);
+    transition-timing-function: var(--gds-easing-out);
   }
 
   .menuButton:hover {

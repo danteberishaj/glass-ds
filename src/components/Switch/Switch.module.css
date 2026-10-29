@@ -1,21 +1,18 @@
+/* Wrapper, label, hint and error typography come from src/internal/field.module.css. */
 @layer gds.components {
   .root {
-    --_track-w: 44px;
-    --_track-h: 24px;
-    --_inset: 2px;
-    --_font-size: var(--gds-font-size-sm);
+    --_track-w: var(--gds-control-switch-track-w-md);
+    --_track-h: var(--gds-control-switch-track-h-md);
+    --_inset: var(--gds-space-0-5);
+    --_label-size: var(--gds-font-size-sm);
     --_gap: var(--gds-space-3);
-
-    display: flex;
-    flex-direction: column;
-    gap: var(--gds-space-1);
-    font-family: var(--gds-font-family-sans);
+    --_field-gap: var(--gds-space-1);
   }
 
   .root[data-size='sm'] {
-    --_track-w: 36px;
-    --_track-h: 20px;
-    --_font-size: var(--gds-font-size-xs);
+    --_track-w: var(--gds-control-switch-track-w-sm);
+    --_track-h: var(--gds-control-switch-track-h-sm);
+    --_label-size: var(--gds-font-size-xs);
     --_gap: var(--gds-space-2);
   }
 
@@ -31,8 +28,9 @@
    * so the control and its state stay >= 3:1 on any glass.
    */
   .control {
-    --_thumb: calc(var(--_track-h) - 2px - 2 * var(--_inset));
+    --_thumb: calc(var(--_track-h) - 2 * var(--_border-w) - 2 * var(--_inset));
     --_travel: calc(var(--_track-w) - var(--_track-h));
+    --_border-w: var(--gds-space-px);
     --_bg: var(--gds-surface-track);
     --_border: var(--gds-border-strong);
     --_thumb-bg: var(--gds-text-secondary);
@@ -57,13 +55,13 @@
     block-size: var(--_track-h);
     margin: 0;
     padding: var(--_inset);
-    border: 1px solid var(--_border);
+    border: var(--_border-w) solid var(--_border);
     border-radius: var(--gds-radius-full);
     background-color: var(--_bg);
     cursor: pointer;
-    transition:
-      background-color var(--gds-duration-normal) var(--gds-easing-standard),
-      border-color var(--gds-duration-normal) var(--gds-easing-standard);
+    transition-property: background-color, border-color;
+    transition-duration: var(--gds-duration-normal);
+    transition-timing-function: var(--gds-easing-standard);
   }
 
   .control::before {
@@ -113,6 +111,11 @@
     --_thumb-scale: 0.9;
   }
 
+  .control[aria-invalid='true'],
+  .control[aria-invalid='true']:hover:not(:disabled) {
+    --_border: var(--gds-danger);
+  }
+
   .control:dir(rtl) {
     --_toward: -1;
   }
@@ -133,10 +136,6 @@
   }
 
   .label {
-    font-size: var(--_font-size);
-    font-weight: var(--gds-font-weight-medium);
-    line-height: var(--gds-font-line-height-normal);
-    color: var(--gds-text-primary);
     cursor: pointer;
     user-select: none;
   }
@@ -146,11 +145,9 @@
     opacity: var(--gds-opacity-disabled);
   }
 
-  .hint {
+  /* Messages line up with the label, not the track. */
+  .message {
     padding-inline-start: calc(var(--_track-w) + var(--_gap));
-    font-size: var(--gds-font-size-xs);
-    line-height: var(--gds-font-line-height-normal);
-    color: var(--gds-text-secondary);
   }
 
   @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {

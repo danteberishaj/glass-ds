@@ -11,13 +11,20 @@
     --_font-size: var(--gds-font-size-xs);
   }
 
+  /*
+   * The list is the one glass layer (a track, like TabList): every control used to blur on its own,
+   * which is one compositing layer per page number. Controls use translucent token fills instead.
+   */
   .list {
-    display: flex;
+    --_track-padding: var(--gds-space-1);
+
+    display: inline-flex;
     flex-wrap: wrap;
     align-items: center;
     gap: var(--gds-space-1);
     margin: 0;
-    padding: 0;
+    padding: var(--_track-padding);
+    border-radius: var(--gds-radius-full);
     list-style: none;
   }
 
@@ -31,9 +38,11 @@
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
-    min-width: var(--_size);
-    height: var(--_size);
+    min-width: calc(var(--_size) - var(--_track-padding) * 2);
+    height: calc(var(--_size) - var(--_track-padding) * 2);
     padding-inline: var(--gds-space-2);
+    border: 1px solid transparent;
+    background-color: transparent;
     border-radius: var(--gds-radius-full);
     font-family: inherit;
     font-size: var(--_font-size);
@@ -54,7 +63,7 @@
   }
 
   .control:hover:not(:disabled, [aria-disabled='true'], [aria-current='page']) {
-    --_fill: var(--gds-surface-glass-strong);
+    background-color: var(--gds-surface-glass-subtle);
   }
 
   .control:active:not(:disabled, [aria-disabled='true'], [aria-current='page']) {
@@ -76,7 +85,6 @@
 
   /* Current page: opaque accent, like the primary Button, so contrast is guaranteed. */
   .control[aria-current='page'] {
-    border: 1px solid transparent;
     background-color: var(--gds-accent);
     color: var(--gds-text-on-accent);
     font-weight: var(--gds-font-weight-semibold);
@@ -95,11 +103,21 @@
   .ellipsis {
     align-items: center;
     justify-content: center;
-    min-width: var(--_size);
-    height: var(--_size);
+    min-width: calc(var(--_size) - var(--_track-padding) * 2);
+    height: calc(var(--_size) - var(--_track-padding) * 2);
     font-size: var(--_font-size);
     color: var(--gds-text-secondary);
     user-select: none;
+  }
+
+  /* First/last draw two chevrons, slightly overlapping. */
+  .chevrons {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .chevrons > .chevron + .chevron {
+    margin-inline-start: calc(var(--gds-space-0-5) * -1);
   }
 
   /* Chevron drawn with two borders, sized from the font. */

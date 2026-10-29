@@ -1,8 +1,7 @@
 @layer gds.components {
   .root {
     --_size: var(--gds-space-6);
-    --_stroke: var(--gds-space-0_5);
-    /* No token for loop durations yet: derived from the slow duration token (~800ms / ~1.9s). */
+    --_stroke: var(--gds-space-0-5);
     --_spin: var(--gds-duration-loop-fast);
     --_pulse: var(--gds-duration-pulse);
 

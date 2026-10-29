@@ -34,6 +34,27 @@ describe('AppShell', () => {
     expect(root).not.toHaveAttribute('data-has-sidebar');
   });
 
+  it('orders header before sidebar in the DOM for header-first, after it for sidebar-first', () => {
+    const { container, rerender } = render(
+      <AppShell layout="header-first" header={<header>Top</header>} sidebar={<nav>Side</nav>}>
+        Page
+      </AppShell>,
+    );
+    const order = () => Array.from(container.querySelectorAll('header, nav, main')).map((el) => el.tagName);
+    expect(order()).toEqual(['HEADER', 'NAV', 'MAIN']);
+    rerender(
+      <AppShell layout="sidebar-first" header={<header>Top</header>} sidebar={<nav>Side</nav>}>
+        Page
+      </AppShell>,
+    );
+    expect(order()).toEqual(['NAV', 'HEADER', 'MAIN']);
+  });
+
+  it('exposes sidebarSide for the grid', () => {
+    const { container } = render(<AppShell sidebarSide="right">Page</AppShell>);
+    expect(container.firstElementChild).toHaveAttribute('data-sidebar-side', 'right');
+  });
+
   it('merges mainProps', () => {
     render(<AppShell mainProps={{ className: 'custom', 'aria-label': 'Dashboard' }}>Page</AppShell>);
     expect(screen.getByRole('main', { name: 'Dashboard' })).toHaveClass('custom');

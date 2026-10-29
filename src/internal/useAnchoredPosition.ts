@@ -67,7 +67,7 @@ export type UseAnchoredPositionOptions = ComputePositionOptions & {
 
 /**
  * While `open`, keeps `floatingRef` fixed next to `anchorRef`, updating (rAF-throttled) on scroll
- * in any scroller (capture), window resize, and size changes of either element.
+ * in any scroller (capture), window and visual-viewport resize/scroll, and size changes of either element.
  *
  * Writes the resolved placement to the floating element's `data-placement` attribute (directly,
  * so a flip doesn't re-render the owner); style the entry animation's origin from it.
@@ -114,6 +114,10 @@ export function useAnchoredPosition(
     update();
     window.addEventListener('scroll', schedule, { capture: true, passive: true });
     window.addEventListener('resize', schedule, { passive: true });
+    // Pinch-zoom and the on-screen keyboard move the visual viewport without a window resize/scroll.
+    const visualViewport = window.visualViewport ?? null;
+    visualViewport?.addEventListener('resize', schedule, { passive: true });
+    visualViewport?.addEventListener('scroll', schedule, { passive: true });
     const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(schedule);
     observer?.observe(anchor);
     observer?.observe(floating);
@@ -122,6 +126,8 @@ export function useAnchoredPosition(
       if (frame) cancelAnimationFrame(frame);
       window.removeEventListener('scroll', schedule, { capture: true });
       window.removeEventListener('resize', schedule);
+      visualViewport?.removeEventListener('resize', schedule);
+      visualViewport?.removeEventListener('scroll', schedule);
       observer?.disconnect();
     };
   }, [open, placement, offset, gutter, rtl, anchorRef, floatingRef]);

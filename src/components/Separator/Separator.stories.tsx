@@ -7,6 +7,35 @@ const meta = {
   component: Separator,
   args: { orientation: 'horizontal', decorative: true },
   argTypes: { orientation: { control: 'inline-radio', options: ['horizontal', 'vertical'] } },
+  // The controls drive the separator itself; the surrounding content only changes direction.
+  render: (args) => (
+    <Glass
+      style={{
+        padding: 24,
+        width: 320,
+        display: 'flex',
+        flexDirection: args.orientation === 'vertical' ? 'row' : 'column',
+        alignItems: args.orientation === 'vertical' ? 'center' : 'stretch',
+        gap: 16,
+        fontSize: 14,
+      }}
+    >
+      <span>Docs</span>
+      <Separator {...args} />
+      <span>Source</span>
+    </Glass>
+  ),
+} satisfies Meta<typeof Separator>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Default: Story = {};
+export const Vertical: Story = { args: { orientation: 'vertical' } };
+/** `decorative={false}` keeps the native separator role (plus `aria-orientation` when vertical). */
+export const Semantic: Story = { args: { decorative: false } };
+
+export const InContext: Story = {
   render: (args) => (
     <Glass style={{ padding: 24, width: 320, display: 'grid', gap: 16 }}>
       <div>
@@ -23,12 +52,6 @@ const meta = {
       </div>
     </Glass>
   ),
-} satisfies Meta<typeof Separator>;
+};
 
-export default meta;
-type Story = StoryObj<typeof meta>;
-
-export const Default: Story = {};
-/** `decorative={false}` exposes role="separator" with aria-orientation. */
-export const Semantic: Story = { args: { decorative: false } };
-export const OnPlainBackground: Story = { parameters: { backdrop: 'plain' } };
+export const OnPlainBackground: Story = { render: InContext.render, parameters: { backdrop: 'plain' } };

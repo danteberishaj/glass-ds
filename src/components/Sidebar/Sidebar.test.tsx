@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { createRef, type ComponentProps } from 'react';
 import { describe, expect, it } from 'vitest';
 import { expectNoA11yViolations } from '../../test/axe';
 import {
@@ -50,10 +51,44 @@ function Example({ collapsed = false }: { collapsed?: boolean }) {
 }
 
 describe('Sidebar', () => {
-  it('is a labelled complementary landmark containing the main navigation', () => {
+  it('is a plain container whose landmark is the navigation inside', () => {
     render(<Example />);
-    expect(screen.getByRole('complementary', { name: 'Sidebar' })).toBeInTheDocument();
-    expect(screen.getByRole('navigation', { name: 'Main' })).toBeInTheDocument();
+    expect(screen.queryByRole('complementary')).toBeNull();
+    expect(screen.getByRole('navigation', { name: 'Sidebar navigation' })).toBeInTheDocument();
+    expect(document.getElementById('sb')?.tagName).toBe('DIV');
+  });
+
+  it('SidebarGroup root is the wrapper; listProps reach the <ul>', () => {
+    const ref = createRef<HTMLDivElement>();
+    render(
+      <SidebarGroup ref={ref} id="grp" className="wrap" label="Tools" listProps={{ className: 'ul', 'data-x': '1' } as ComponentProps<'ul'>}>
+        <SidebarItem>Item</SidebarItem>
+      </SidebarGroup>,
+    );
+    expect(ref.current).toHaveAttribute('id', 'grp');
+    expect(ref.current).toHaveClass('wrap');
+    const list = screen.getByRole('list', { name: 'Tools' });
+    expect(ref.current).toContainElement(list);
+    expect(list).toHaveClass('ul');
+    expect(list).toHaveAttribute('data-x', '1');
+  });
+
+  it('as="button" defaults type="button"; as={Component} type-checks its own props', () => {
+    const RouterLink = ({ to, ...props }: { to: string } & ComponentProps<'a'>) => <a href={to} {...props} />;
+    render(
+      <>
+        <SidebarLink as="button">Action</SidebarLink>
+        <SidebarLink as="button" type="submit">
+          Submit
+        </SidebarLink>
+        <SidebarLink as={RouterLink} to="/docs" active>
+          Docs
+        </SidebarLink>
+      </>,
+    );
+    expect(screen.getByRole('button', { name: 'Action' })).toHaveAttribute('type', 'button');
+    expect(screen.getByRole('button', { name: 'Submit' })).toHaveAttribute('type', 'submit');
+    expect(screen.getByRole('link', { name: 'Docs' })).toHaveAttribute('href', '/docs');
   });
 
   it('names each group list by its label', () => {
@@ -70,7 +105,7 @@ describe('Sidebar', () => {
 
   it('keeps link names when collapsed (labels are visually hidden, not removed)', () => {
     render(<Example collapsed />);
-    expect(screen.getByRole('complementary')).toHaveAttribute('data-collapsed');
+    expect(document.getElementById('sb')).toHaveAttribute('data-collapsed');
     expect(screen.getByRole('link', { name: 'Projects' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Help' })).toBeInTheDocument();
   });

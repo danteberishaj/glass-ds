@@ -8,7 +8,6 @@
     --_width: 100%;
     --_height: calc(1em * var(--gds-font-line-height-normal));
     --_radius: var(--gds-radius-md);
-    /* No token for loop durations yet: derived from the slowest duration token. */
     --_duration: var(--gds-duration-loop);
 
     position: relative;

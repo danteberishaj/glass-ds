@@ -1,9 +1,10 @@
 import type { ComponentPropsWithRef, CSSProperties } from 'react';
+import type { Size, Tone } from '../../types';
 import { cx } from '../../utils/cx';
 import styles from './Progress.module.css';
 
-export type ProgressTone = 'accent' | 'success' | 'warning' | 'danger' | 'info';
-export type ProgressSize = 'sm' | 'md' | 'lg';
+export type ProgressTone = Extract<Tone, 'accent' | 'success' | 'warning' | 'danger' | 'info'>;
+export type ProgressSize = Size;
 
 export type ProgressProps = Omit<ComponentPropsWithRef<'div'>, 'children'> & {
   /** Current value. `null`/omitted = indeterminate (unknown duration). */

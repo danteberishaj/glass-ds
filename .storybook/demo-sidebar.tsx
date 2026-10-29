@@ -20,10 +20,12 @@ import { ChartIcon, FolderIcon, HelpIcon, HomeIcon, InboxIcon, LogoMark, Setting
 const brandStyle = { display: 'flex', alignItems: 'center', gap: 10, fontWeight: 700, whiteSpace: 'nowrap' } as const;
 
 export function DemoSidebar({
+  id = 'demo-sidebar',
   active = 'Dashboard',
+  navLabel,
   onCollapsedChange,
   ...args
-}: SidebarProps & { active?: string; onCollapsedChange?: () => void }) {
+}: SidebarProps & { active?: string; navLabel?: string; onCollapsedChange?: () => void }) {
   const link = (label: string, icon: ReactNode, badge?: ReactNode) => (
     <SidebarItem>
       <SidebarLink href={`#${label.toLowerCase()}`} icon={icon} badge={badge} active={label === active}>
@@ -32,16 +34,16 @@ export function DemoSidebar({
     </SidebarItem>
   );
   return (
-    <Sidebar id="demo-sidebar" {...args}>
+    <Sidebar id={id} {...args}>
       <SidebarHeader>
         <span style={brandStyle}>
           <LogoMark />
           {!args.collapsed && 'Prism'}
         </span>
-        {onCollapsedChange && <SidebarToggle collapsed={args.collapsed} onClick={onCollapsedChange} aria-controls="demo-sidebar" />}
+        {onCollapsedChange && <SidebarToggle collapsed={args.collapsed} onClick={onCollapsedChange} aria-controls={id} />}
       </SidebarHeader>
       <SidebarContent>
-        <SidebarNav>
+        <SidebarNav aria-label={navLabel}>
           <SidebarGroup label="Workspace">
             {link('Dashboard', <HomeIcon />)}
             {link('Analytics', <ChartIcon />)}

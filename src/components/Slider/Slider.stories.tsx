@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
-import { expect, userEvent, within } from 'storybook/test';
+import { expect, fireEvent, within } from 'storybook/test';
 import { Slider } from './Slider';
 
 const meta = {
@@ -15,10 +15,13 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   play: async ({ canvasElement }) => {
-    const slider = within(canvasElement).getByRole('slider', { name: 'Volume' });
-    slider.focus();
-    await userEvent.keyboard('{ArrowRight}');
+    const canvas = within(canvasElement);
+    const slider = canvas.getByRole('slider', { name: 'Volume' });
+    // Synthetic key events never step a native range input (only trusted ones do), so drive the
+    // value directly: that still goes through the component's onChange → fill + output path.
+    await fireEvent.input(slider, { target: { value: '41' } });
     await expect(slider).toHaveValue('41');
+    await expect(canvas.getByText('41', { selector: 'output' })).toBeInTheDocument();
   },
 };
 export const WithoutValue: Story = { args: { showValue: false } };

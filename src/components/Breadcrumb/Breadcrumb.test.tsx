@@ -70,6 +70,20 @@ describe('Breadcrumb', () => {
     expect(screen.getByRole('navigation', { name: 'You are here' })).toBeInTheDocument();
   });
 
+  it('types the `as` component\'s own props (e.g. a router `to`)', () => {
+    const RouterLink = ({ to, ...rest }: { to: string } & ComponentPropsWithRef<'a'>) => <a href={to} {...rest} />;
+    render(
+      <Breadcrumb>
+        <BreadcrumbItem>
+          <BreadcrumbLink as={RouterLink} to="/docs">
+            Docs
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+      </Breadcrumb>,
+    );
+    expect(screen.getByRole('link', { name: 'Docs' })).toHaveAttribute('href', '/docs');
+  });
+
   it('gives the ellipsis screen-reader text', () => {
     render(<Example />);
     expect(screen.getByText('More pages')).toHaveClass('gds-sr-only');

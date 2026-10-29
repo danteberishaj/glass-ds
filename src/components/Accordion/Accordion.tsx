@@ -19,14 +19,24 @@ export function Accordion({ className, intensity = 'regular', radius = 'lg', ...
   return <Glass intensity={intensity} radius={radius} className={cx(styles.root, className)} {...rest} />;
 }
 
-export type AccordionItemProps = ComponentPropsWithRef<'details'> & {
+export type AccordionItemProps = Omit<ComponentPropsWithRef<'details'>, 'open'> & {
+  /**
+   * Initial-and-synced, **not vetoable**: `open` is written to the native `open` attribute whenever it
+   * changes, but the browser still toggles the `<details>` itself on click/Enter (and when a sibling with
+   * the same `name` opens), so the element can drift from the prop until you update it. There is no way
+   * to cancel a native toggle: `toggle` fires after the fact and `summary` clicks can't be prevented
+   * without losing keyboard/AT behaviour. Keep the prop in sync from `onToggle`
+   * (`event.currentTarget.open`), or use `defaultOpen` and let the element own it.
+   */
+  open?: boolean;
   /** Open on first render. The browser owns the state afterwards (listen with `onToggle`). */
   defaultOpen?: boolean;
 };
 
 /**
- * One collapsible section (`<details>`). For a controlled item, pass `open` and update it from
- * `onToggle` (`event.currentTarget.open`). Same `name` on several items = only one open at a time.
+ * One collapsible section (`<details>`). Pass `open` and update it from `onToggle`
+ * (`event.currentTarget.open`); see `open` for why it can't veto a toggle. Same `name` on several items
+ * = only one open at a time.
  */
 export function AccordionItem({ open, defaultOpen, className, ...rest }: AccordionItemProps) {
   return <details open={open ?? defaultOpen} className={cx(styles.item, className)} {...rest} />;

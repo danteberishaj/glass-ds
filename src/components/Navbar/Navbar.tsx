@@ -1,4 +1,5 @@
 import type { ComponentPropsWithRef, ElementType } from 'react';
+import type { PolymorphicProps } from '../../internal/polymorphic';
 import { cx } from '../../utils/cx';
 import { GLASS_CLASS } from '../../utils/glass';
 import { SR_ONLY_CLASS } from '../../utils/sr-only';
@@ -50,21 +51,24 @@ export function Navbar({
   );
 }
 
-export type NavbarBrandProps = ComponentPropsWithRef<'a'> & {
-  /** Element or component to render, e.g. `Link` from next/link. Defaults to `a` (or `div` without `href`). */
-  as?: ElementType;
-};
+export type NavbarBrandProps<T extends ElementType = 'a'> = PolymorphicProps<
+  T,
+  {
+    /** Element or component to render, e.g. `Link` from next/link. Defaults to `a` (or `div` without `href`). */
+    as?: T;
+  }
+>;
 
 /** Logo + product name. Usually links home. */
-export function NavbarBrand({ as, href, className, ...rest }: NavbarBrandProps) {
-  const Component = as ?? (href ? 'a' : 'div');
-  return <Component href={href} className={cx(styles.brand, className)} {...rest} />;
+export function NavbarBrand<T extends ElementType = 'a'>({ as, className, ...rest }: NavbarBrandProps<T>) {
+  const Component: ElementType = as ?? ('href' in rest && rest.href ? 'a' : 'div');
+  return <Component className={cx(styles.brand, className)} {...rest} />;
 }
 
 export type NavbarNavProps = ComponentPropsWithRef<'nav'>;
 
-/** The primary links. Wraps children in a list; pass `NavbarItem`s. */
-export function NavbarNav({ className, children, 'aria-label': ariaLabel = 'Main', ...rest }: NavbarNavProps) {
+/** The primary links. Wraps children in a list; pass `NavbarItem`s. Landmark name defaults to "Primary". */
+export function NavbarNav({ className, children, 'aria-label': ariaLabel = 'Primary', ...rest }: NavbarNavProps) {
   return (
     <nav aria-label={ariaLabel} className={cx(styles.nav, className)} {...rest}>
       <ul className={styles.list}>{children}</ul>
@@ -78,14 +82,25 @@ export function NavbarItem({ className, ...rest }: NavbarItemProps) {
   return <li className={cx(styles.item, className)} {...rest} />;
 }
 
-export type NavbarLinkProps = ComponentPropsWithRef<'a'> & {
-  /** Element or component to render, e.g. `Link` from next/link. Defaults to `a`. */
-  as?: ElementType;
+type NavbarLinkOwnProps = {
   /** Marks the link as the current page (`aria-current="page"`). */
   active?: boolean;
 };
 
-export function NavbarLink({ as: Component = 'a', active = false, className, ...rest }: NavbarLinkProps) {
+/**
+ * Generic over the rendered element: `<NavbarLink as={Link} to="/x">` type-checks `Link`'s own props.
+ * Without a type argument it is the plain `<a>` props.
+ */
+export type NavbarLinkProps<T extends ElementType = 'a'> = PolymorphicProps<
+  T,
+  NavbarLinkOwnProps & {
+    /** Element or component to render, e.g. `Link` from next/link. Defaults to `a`. */
+    as?: T;
+  }
+>;
+
+export function NavbarLink<T extends ElementType = 'a'>({ as, active = false, className, ...rest }: NavbarLinkProps<T>) {
+  const Component: ElementType = as ?? 'a';
   return (
     <Component
       aria-current={active ? 'page' : undefined}

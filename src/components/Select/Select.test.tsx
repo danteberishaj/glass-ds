@@ -58,7 +58,9 @@ describe('Select', () => {
         {options}
       </Select>,
     );
-    expect((screen.getByLabelText('Country') as HTMLSelectElement).checkValidity()).toBe(false);
+    const select = screen.getByRole<HTMLSelectElement>('combobox', { name: 'Country' });
+    expect(select).toBeRequired();
+    expect(select.checkValidity()).toBe(false);
   });
 
   it('links hint and error through aria-describedby and marks invalid', () => {

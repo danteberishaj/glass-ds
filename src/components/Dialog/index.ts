@@ -16,4 +16,6 @@ export type {
   DialogBodyProps,
   DialogFooterProps,
   DialogCloseProps,
+  DialogOpenChangeReason,
+  DialogOpenChangeDetails,
 } from './Dialog';

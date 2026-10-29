@@ -3,14 +3,15 @@
 import {
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
-  useSyncExternalStore,
   type ComponentPropsWithRef,
   type FocusEvent,
   type KeyboardEvent,
 } from 'react';
+import { useClientEnvironment, warnServerRenderWithoutLocale } from '../../internal/useClientEnvironment';
 import { cx } from '../../utils/cx';
 import { GLASS_CLASS } from '../../utils/glass';
 import { Button } from '../Button';
@@ -67,9 +68,15 @@ export type CalendarProps = Omit<
   max?: Date | null;
   /** Return `true` to disable a day. Disabled days stay focusable (APG) but can't be picked. */
   isDateDisabled?: (date: Date) => boolean;
-  /** BCP 47 tag for month/weekday names and digits. Default: the runtime's locale (pass one when server-rendering). */
+  /**
+   * BCP 47 tag for month/weekday names and digits. Default: `<html lang>`, else the browser language, read on
+   * the client after hydration. Pass one when server-rendering, so the server HTML already matches.
+   */
   locale?: string;
-  /** 0 = Sunday … 6 = Saturday. Default: from `Intl.Locale#getWeekInfo()`, else Monday. */
+  /**
+   * 0 = Sunday … 6 = Saturday. Default: from the locale (`Intl.Locale#getWeekInfo()`, else Monday); when neither
+   * is passed, from the client's language after hydration (Monday in the server HTML).
+   */
   weekStartsOn?: WeekDay;
   /** Show the leading/trailing days of the neighbouring months. Default `true`. */
   showOutsideDays?: boolean;
@@ -83,22 +90,12 @@ export type CalendarProps = Omit<
   nextMonthLabel?: string;
 };
 
-// "Today" is read after hydration (server snapshot = null), so server and client markup agree.
-// Re-checked every minute so a page left open past midnight moves the marker.
-const subscribeToClock = (onChange: () => void) => {
-  const id = setInterval(onChange, 60_000);
-  return () => clearInterval(id);
-};
-const getTodayKey = () => dayKey(new Date());
-const getServerTodayKey = () => null;
-
-function useToday(): Date | null {
-  const key = useSyncExternalStore(subscribeToClock, getTodayKey, getServerTodayKey);
-  return useMemo(
-    () => (key === null ? null : makeDay(Math.floor(key / 10000), (Math.floor(key / 100) % 100) - 1, key % 100)),
-    [key],
-  );
-}
+/**
+ * Visible month before the client environment is known (server HTML and the hydration render) when
+ * nothing else pins it: a fixed day, so server and client markup agree. The client snapshot replaces it
+ * with today's month right after hydration.
+ */
+const PLACEHOLDER_DAY = makeDay(1970, 0, 1);
 
 export function Calendar({
   value: valueProp,
@@ -125,24 +122,35 @@ export function Calendar({
   const gridRef = useRef<HTMLTableElement>(null);
   /** Set by keyboard moves; the effect below moves DOM focus once the target day has rendered. */
   const pendingFocus = useRef(false);
-  const today = useToday();
+  // Clock, language and week start come from the client (null on the server and while hydrating):
+  // "today" is never in the server HTML, and text formatted without `locale` is re-rendered on the client.
+  const env = useClientEnvironment();
+  warnServerRenderWithoutLocale('Calendar', locale);
+  const today = env?.today ?? null;
+  const resolvedLocale = locale ?? env?.locale;
 
   const [uncontrolledValue, setUncontrolledValue] = useState<Date | null>(defaultValue);
   const value = valueProp !== undefined ? valueProp : uncontrolledValue;
 
-  const [uncontrolledMonth, setUncontrolledMonth] = useState(() =>
-    startOfMonth(defaultMonth ?? value ?? clampDate(new Date(), min, max)),
+  /** `null` until the user navigates: the visible month then follows the value / today. */
+  const [uncontrolledMonth, setUncontrolledMonth] = useState<Date | null>(null);
+  const month = startOfMonth(
+    monthProp ?? uncontrolledMonth ?? defaultMonth ?? value ?? clampDate(env?.today ?? PLACEHOLDER_DAY, min, max),
   );
-  const month = startOfMonth(monthProp ?? uncontrolledMonth);
   const currentMonthKey = monthKey(month);
 
   // Direction of the last month change, for the slide. Derived during render from the previous
   // month (React's "adjust state on prop change" pattern), so controlled changes animate too.
-  const [nav, setNav] = useState<{ key: number; direction: Direction }>({ key: currentMonthKey, direction: 'none' });
+  // The jump from the placeholder month to today's (client environment arriving) doesn't slide.
+  const [nav, setNav] = useState<{ key: number; direction: Direction; ready: boolean }>({
+    key: currentMonthKey,
+    direction: 'none',
+    ready: env !== null,
+  });
   let direction = nav.direction;
   if (nav.key !== currentMonthKey) {
-    direction = currentMonthKey > nav.key ? 'next' : 'prev';
-    setNav({ key: currentMonthKey, direction });
+    direction = !nav.ready ? 'none' : currentMonthKey > nav.key ? 'next' : 'prev';
+    setNav({ key: currentMonthKey, direction, ready: env !== null });
   }
 
   /** The day the user last moved to; only used while it is in the visible month. */
@@ -150,17 +158,21 @@ export function Calendar({
   /** Day key of the last pick, so only a fresh selection pops (not every re-render or month change). */
   const [poppedKey, setPoppedKey] = useState<number | null>(null);
 
-  const weekStartsOn = useMemo(() => weekStartsOnProp ?? getWeekStartsOn(locale), [weekStartsOnProp, locale]);
+  // An explicit locale resolves deterministically (also on the server); otherwise the client's week start.
+  const weekStartsOn = useMemo(
+    () => weekStartsOnProp ?? (locale !== undefined ? getWeekStartsOn(locale) : (env?.weekStartsOn ?? 1)),
+    [weekStartsOnProp, locale, env?.weekStartsOn],
+  );
   const formatters = useMemo(
     () => ({
-      heading: new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }),
-      day: new Intl.DateTimeFormat(locale, { day: 'numeric' }),
-      full: new Intl.DateTimeFormat(locale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
-      weekdayLong: new Intl.DateTimeFormat(locale, { weekday: 'long' }),
-      weekdayShort: new Intl.DateTimeFormat(locale, { weekday: 'short' }),
-      weekdayNarrow: new Intl.DateTimeFormat(locale, { weekday: 'narrow' }),
+      heading: new Intl.DateTimeFormat(resolvedLocale, { month: 'long', year: 'numeric' }),
+      day: new Intl.DateTimeFormat(resolvedLocale, { day: 'numeric' }),
+      full: new Intl.DateTimeFormat(resolvedLocale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
+      weekdayLong: new Intl.DateTimeFormat(resolvedLocale, { weekday: 'long' }),
+      weekdayShort: new Intl.DateTimeFormat(resolvedLocale, { weekday: 'short' }),
+      weekdayNarrow: new Intl.DateTimeFormat(resolvedLocale, { weekday: 'narrow' }),
     }),
-    [locale],
+    [resolvedLocale],
   );
 
   const weeks = getMonthGrid(month, weekStartsOn);
@@ -184,6 +196,7 @@ export function Calendar({
   function changeMonth(next: Date) {
     const first = startOfMonth(next);
     if (monthKey(first) === currentMonthKey) return;
+    setPoppedKey(null); // the pop is for a fresh pick, not for the selected day sliding back into view
     if (monthProp === undefined) setUncontrolledMonth(first);
     onMonthChange?.(first);
   }
@@ -249,7 +262,9 @@ export function Calendar({
   }
 
   // Keyboard moves: focus the new day once it is rendered (the grid body is re-keyed on month change).
-  useEffect(() => {
+  // Layout effect: focus moves before paint, so no frame shows the old day focused (or nothing focused
+  // after the old body unmounted) and the browser doesn't scroll twice.
+  useLayoutEffect(() => {
     if (!pendingFocus.current) return;
     pendingFocus.current = false;
     gridRef.current?.querySelector<HTMLButtonElement>(`button[data-date="${toISODate(focusDate)}"]`)?.focus();

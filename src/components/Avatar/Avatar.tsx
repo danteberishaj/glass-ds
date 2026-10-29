@@ -21,11 +21,14 @@ export type AvatarProps = Omit<ComponentPropsWithRef<'span'>, 'children'> & {
   imageProps?: Omit<AvatarImageProps, 'src'>;
 };
 
-/** "Ada Lovelace" → "AL", "plato" → "P". */
+/** First code point of a word, so astral characters (emoji, some CJK) are not cut in half. */
+const firstChar = (word: string | undefined) => (word ? (Array.from(word)[0] ?? '') : '');
+
+/** "Ada Lovelace" → "AL", "plato" → "P", "𝔄da" → "𝔄". */
 export function getInitials(name: string): string {
   const words = name.trim().split(/\s+/).filter(Boolean);
-  const first = words[0]?.[0] ?? '';
-  const last = words.length > 1 ? (words.at(-1)?.[0] ?? '') : '';
+  const first = firstChar(words[0]);
+  const last = words.length > 1 ? firstChar(words.at(-1)) : '';
   return (first + last).toUpperCase();
 }
 

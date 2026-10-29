@@ -4,7 +4,6 @@
     --_height: var(--gds-space-2);
     --_color: var(--gds-accent);
     --_dir: 1;
-    /* No token for loop durations yet: derived from the slow duration token (~1.6s / ~1.9s). */
     --_loop: var(--gds-duration-loop);
     --_pulse: var(--gds-duration-pulse);
 

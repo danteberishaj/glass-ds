@@ -1,9 +1,10 @@
 import type { ComponentPropsWithRef, ReactNode } from 'react';
+import type { Tone } from '../../types';
 import { cx } from '../../utils/cx';
 import { GLASS_CLASS } from '../../utils/glass';
 import styles from './Alert.module.css';
 
-export type AlertTone = 'neutral' | 'info' | 'success' | 'warning' | 'danger';
+export type AlertTone = Extract<Tone, 'neutral' | 'info' | 'success' | 'warning' | 'danger'>;
 
 export type AlertProps = Omit<ComponentPropsWithRef<'div'>, 'title'> & {
   tone?: AlertTone;
@@ -11,6 +12,11 @@ export type AlertProps = Omit<ComponentPropsWithRef<'div'>, 'title'> & {
   title?: ReactNode;
   /** Leading icon (decorative; hidden from assistive tech). */
   icon?: ReactNode;
+  /**
+   * Trailing slot, aligned to the end: a Button (`size="sm"`, usually `ghost`) for "Retry" / "Undo" /
+   * "Dismiss". Interactive content inside a live region is fine, but keep it to one or two controls.
+   */
+  action?: ReactNode;
   /**
    * Interrupts the screen reader (`role="alert"`). Only for time-sensitive problems that need
    * immediate attention; everything else uses the polite `role="status"` default.
@@ -23,7 +29,7 @@ export type AlertProps = Omit<ComponentPropsWithRef<'div'>, 'title'> & {
  * Live regions announce content that changes after mount: render the Alert container
  * up front, or expect only newly inserted alerts to be read out.
  */
-export function Alert({ tone = 'neutral', title, icon, urgent = false, className, children, ...rest }: AlertProps) {
+export function Alert({ tone = 'neutral', title, icon, action, urgent = false, className, children, ...rest }: AlertProps) {
   return (
     <div
       role={urgent ? 'alert' : 'status'}
@@ -40,6 +46,7 @@ export function Alert({ tone = 'neutral', title, icon, urgent = false, className
         {title && <div className={styles.title}>{title}</div>}
         {children && <div className={styles.description}>{children}</div>}
       </div>
+      {action && <div className={styles.action}>{action}</div>}
     </div>
   );
 }

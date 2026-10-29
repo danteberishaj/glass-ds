@@ -1,0 +1,43 @@
+/*
+ * Shared chassis for form fields (TextField, Textarea, Select, Checkbox, RadioGroup, Switch, Slider).
+ * Owns layout and typography of the wrapper, label, hint and error. A component's own module only
+ * adds properties these classes don't set (padding, cursor…) and tunes the `--_field-*` /
+ * `--_label-*` variables, so the two files never fight over source order.
+ */
+@layer gds.components {
+  .root {
+    display: flex;
+    flex-direction: column;
+    gap: var(--_field-gap, var(--gds-space-2));
+    font-family: var(--gds-font-family-sans);
+  }
+
+  .label {
+    font-size: var(--_label-size, var(--gds-font-size-sm));
+    font-weight: var(--gds-font-weight-medium);
+    line-height: var(--gds-font-line-height-normal);
+    color: var(--gds-text-primary);
+  }
+
+  /* Visual-only required marker; the native `required` attribute carries the semantics. */
+  .required {
+    margin-inline-start: var(--gds-space-0-5);
+    color: var(--gds-danger-text);
+  }
+
+  .hint,
+  .error {
+    font-size: var(--gds-font-size-xs);
+    line-height: var(--gds-font-line-height-normal);
+  }
+
+  .hint {
+    color: var(--gds-text-secondary);
+  }
+
+  /* danger-text, not danger: the plain danger red is < 4.5:1 on light glass. */
+  .error {
+    font-weight: var(--gds-font-weight-medium);
+    color: var(--gds-danger-text);
+  }
+}

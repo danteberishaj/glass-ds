@@ -30,8 +30,8 @@
     transition-timing-function: var(--gds-easing-standard), var(--gds-easing-standard), var(--_press-easing);
   }
 
-  .root:hover:not(:disabled) {
-    transform: translateY(-1px);
+  .root:hover:not(:disabled, [aria-disabled='true']) {
+    transform: translateY(calc(var(--gds-space-px) * -1));
   }
 
   /* Icons inside a button: sized to the text, never shrunk by the flex row. Inline SVGs often have no size. */
@@ -46,15 +46,21 @@
     outline-offset: 2px;
   }
 
-  .root:active:not(:disabled) {
+  .root:active:not(:disabled, [aria-disabled='true']) {
     --_press-duration: var(--gds-duration-fast);
     --_press-easing: var(--gds-easing-out);
     transform: scale(0.97);
   }
 
-  .root:disabled {
+  /* aria-disabled: the `loading` state, which keeps the button focusable. */
+  .root:disabled,
+  .root[aria-disabled='true'] {
     cursor: not-allowed;
     opacity: var(--gds-opacity-disabled);
+  }
+
+  .root[data-loading] {
+    cursor: progress;
   }
 
   .root[data-size='sm'] { --_height: var(--gds-control-height-sm); --_padding-x: var(--gds-space-3); --_font-size: var(--gds-font-size-xs); }
@@ -62,12 +68,12 @@
 
   /* glass: the signature look */
   /* Hover lifts onto the raised shadow; the sheen (GLASS_SHEEN_CLASS, added in Button.tsx) sweeps once. */
-  .glass:hover:not(:disabled) {
+  .glass:hover:not(:disabled, [aria-disabled='true']) {
     --_fill: var(--gds-surface-glass-strong);
     box-shadow: var(--gds-shadow-glass-raised);
   }
 
-  .glass:active:not(:disabled) {
+  .glass:active:not(:disabled, [aria-disabled='true']) {
     box-shadow: var(--gds-shadow-glass);
   }
 
@@ -79,12 +85,12 @@
     /* A thin inner top highlight: the opaque CTA still reads as a lit surface. */
     box-shadow: inset 0 1px 0 var(--gds-border-glass);
   }
-  .solid:hover:not(:disabled) {
+  .solid:hover:not(:disabled, [aria-disabled='true']) {
     background-color: var(--gds-accent-hover);
     /* shadow-glass = soft drop shadow + the same inner highlight. */
     box-shadow: var(--gds-shadow-glass);
   }
-  .solid:active:not(:disabled) {
+  .solid:active:not(:disabled, [aria-disabled='true']) {
     box-shadow: inset 0 1px 0 var(--gds-border-glass);
   }
 
@@ -94,18 +100,25 @@
     color: var(--gds-text-primary);
     border: 1px solid transparent;
   }
-  .ghost:hover:not(:disabled) {
+  .ghost:hover:not(:disabled, [aria-disabled='true']) {
     background-color: var(--gds-accent-glass);
   }
 
   /* No lift or press movement; colour and shadow still crossfade (they don't move anything). */
   @media (prefers-reduced-motion: reduce) {
-    .root:hover:not(:disabled),
-    .root:active:not(:disabled) { transform: none; }
+    .root:hover:not(:disabled, [aria-disabled='true']),
+    .root:active:not(:disabled, [aria-disabled='true']) { transform: none; }
   }
 
   @media (forced-colors: active) {
     .solid, .ghost { border-color: ButtonText; }
-    .solid, .solid:hover:not(:disabled), .solid:active:not(:disabled) { box-shadow: none; }
+    .solid, .solid:hover:not(:disabled, [aria-disabled='true']), .solid:active:not(:disabled, [aria-disabled='true']) { box-shadow: none; }
+    /* Opacity is dropped by forced colors: say "disabled" with the system colour instead. */
+    .root:disabled,
+    .root[aria-disabled='true'] {
+      opacity: 1;
+      color: GrayText;
+      border-color: GrayText;
+    }
   }
 }

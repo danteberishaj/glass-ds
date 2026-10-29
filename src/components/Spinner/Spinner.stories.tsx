@@ -28,18 +28,16 @@ const grid = () => (
 
 export const AllSizesAndTones: Story = { render: grid };
 
-/**
- * `tone="current"` follows the button's text colour. The button's own text already says what is
- * happening, so the spinner is `aria-hidden` here to avoid a doubled name ("Saving Saving…").
- */
+/** `Button loading` renders this spinner with `tone="current"`, so it follows the button's text colour. */
 export const InButton: Story = {
   render: () => (
     <div style={{ display: 'flex', gap: 12 }}>
-      <Button variant="solid" disabled>
-        <Spinner size="sm" tone="current" aria-hidden /> Saving…
+      <Button variant="solid" loading>
+        Saving…
       </Button>
-      <Button disabled>
-        <Spinner size="sm" tone="current" aria-hidden /> Loading
+      <Button loading>Loading</Button>
+      <Button variant="ghost" loading>
+        Refreshing
       </Button>
     </div>
   ),

@@ -5,6 +5,9 @@ Format: **symptom** → cause → fix. Newest entries go at the top of their sec
 
 ## Build & packaging
 
+- **`npm run verify` passes but `npm run build` (and `test:next`) fails with "Cannot find name 'process'".** →
+  The library type build (`tsconfig.build.json`) has no Node types on purpose; the main tsconfig does. → Use
+  `isDev` from `src/internal/env.ts` (local `declare const process`). `npm run typecheck` runs both configs.
 - **The glass recipe appears many times in `dist/glass-ds.css`, and later copies override variant rules.**
   → CSS Modules `composes: x from './other.module.css'` makes Vite emit the composed file again for every
   importer. → Shared styles are a single *global* class (`.gds-glass` in `styles/glass.css`, applied via
@@ -16,6 +19,16 @@ Format: **symptom** → cause → fix. Newest entries go at the top of their sec
 - **`'use client'` missing in dist → Next.js error "useId only works in a Client Component".** → A bundler
   dropped the directive, or the file doesn't start with it (comments are fine above it, imports are not).
   → Keep `preserveModules: true` (one output file per source file) and the `preserveUseClient` plugin.
+  `npm run test:package` compares the set of `'use client'` files in `src/` and `dist/`.
+- **Consumers on `moduleResolution: node16` get "Module 'glass-ds' has no exported member".** → tsc emits
+  `.d.ts` with extensionless relative imports (`from './components/Glass'`), which node16 can't resolve. →
+  `scripts/finish-dist.ts` rewrites them to `./x.js` / `./x/index.js` after the type build.
+- **TS 6 consumers get `TS2882 Cannot find module './styles/index.css'` from inside the package, or on
+  `import 'glass-ds/styles.css'`.** → `noUncheckedSideEffectImports` is on by default in TS 6; side-effect imports
+  survive in `.d.ts`, and exports subpaths without a `types` target are untyped. → `finish-dist.ts` strips CSS
+  imports from `.d.ts`; `exports["./styles.css"]` has a `types` stub.
+- **`require('glass-ds')` throws `ERR_PACKAGE_PATH_NOT_EXPORTED`.** → `exports["."]` had only `import`. → Add
+  `default` (Node ≥ 22 can `require(esm)`; no CJS build needed).
 - **Consumers get "Cannot find module './Button.module.css'" or Next.js Pages Router rejects global CSS from
   node_modules.** → JS output importing CSS. → Vite lib mode with `cssCodeSplit: false` extracts all CSS into
   `dist/glass-ds.css`, and consumers import `glass-ds/styles.css` once. Never hand-write a CSS import into the JS output.
@@ -43,6 +56,24 @@ Format: **symptom** → cause → fix. Newest entries go at the top of their sec
 
 ## React / Next.js (RSC)
 
+
+- **A controlled `checked={false} indeterminate` checkbox loses its dash after a click.** → The click clears the DOM
+  `indeterminate` property; React only re-applies `checked`. → Re-assert it in `onChange` and in an effect keyed on
+  `[indeterminate, checked]`.
+- **RadioGroup with `value={undefined}` warns "uncontrolled to controlled".** → `value !== undefined` was the
+  controlled test. → Decide with `'value' in props` (keep the props object; destructure after).
+- **A `loading` Button still lifts and presses on hover.** → `:not(:disabled)` guards don't see `aria-disabled`. →
+  Every guard is `:not(:disabled, [aria-disabled='true'])`; forced-colors drops the opacity and uses `GrayText`.
+- **A generic `as` component (`<T extends ElementType>`) fails JSX typing as `<Component />`.** → TS can't call a
+  bare generic ElementType. → Widen at the call site: `const Component: ElementType = as ?? 'a'`. Spreading generic
+  `rest` into a non-generic child needs one cast (`rest as GlassProps`).
+- **The Calendar's initial month or week-start day differs between server and client.** → Both were computed
+  from `new Date()` / `Intl` during render. → `useClientEnvironment()` (`useSyncExternalStore`, `null` on the
+  server) supplies today, locale and weekStartsOn after hydration; pass `locale` when server-rendering.
+- **Unmount cleanup for an open `<dialog>` sees `ref.current === null`.** → React detaches host refs before passive
+  cleanups run. → Capture the element in a `useLayoutEffect` and close it in that cleanup.
+- **A Tab put in the tab order by writing DOM `tabIndex` stays `0` after React re-renders.** → React only writes
+  attributes whose prop changed. → `syncTabbable` writes every tab's tabIndex so the DOM mirrors what React would render.
 
 - **`useId` or context used in a component meant for Server Components → RSC error.** → Hooks can't run on the
   server side of the boundary. → Split a server shell from a small `'use client'` part: Avatar (shell) +
@@ -123,12 +154,25 @@ Format: **symptom** → cause → fix. Newest entries go at the top of their sec
   `forced-colors` come last, so they win.
 - **Janky scrolling on mobile.** → Many or large `backdrop-filter` layers, or an animated blur radius. →
   Limit glass layers per screen. Animate `opacity`/`transform` only, never `backdrop-filter`.
-- **A component override in a CSS Module doesn't apply over `.gds-glass`.** → Same specificity, and source order
-  across files isn't guaranteed. → Tune via the `--_fill`/`--_blur` custom properties, or raise specificity with
-  the state/attribute selector you need anyway (`.root:hover`, `[data-…]`).
+- **A component override in a CSS Module doesn't apply over `.gds-glass`.** → Same specificity; in the extracted
+  stylesheet order is deterministic (glass.css first, then modules in `src/index.ts` import order) so modules do win
+  there, but in Storybook/Vite dev the injection order can differ. → Don't rely on order: tune via the
+  `--_fill`/`--_blur` custom properties, or use the attribute/state selector you need anyway (`[data-…]`, `:hover`).
 
 ## Accessibility
 
+
+- **Opening a Dialog announces "Close" before the title.** → `showModal()` focuses the first focusable element,
+  and the corner `<DialogClose />` was first in the DOM. → The panel takes initial focus (`tabIndex={-1}`); place the
+  icon-only close button last in the DOM anyway.
+- **A `<dialog>` has no accessible name in the server HTML.** → `aria-labelledby` was set from state after a child
+  effect ran. → Always render `aria-labelledby={titleId}`; `DialogTitle` is required (dev warning if missing).
+- **Two `navigation` landmarks named "Main" (Navbar + Sidebar).** → Same default `aria-label`. → Navbar defaults to
+  "Primary", Sidebar to "Sidebar navigation". The Sidebar root is a plain `div`, not an `<aside>`.
+- **`getByLabelText('Country')` fails on a `required` field.** → The aria-hidden `*` is in the label's text
+  content, which Testing Library matches literally. → Query with `getByRole('textbox', { name })`.
+- **Field error text failed contrast on glass.** → `--gds-danger` is tuned for borders/fills. → Text uses
+  `--gds-danger-text` (`danger-text`/`warning-text` exist for every status tone that needs text).
 
 - **Esc closes a non-dismissible Dialog on the second press in Chrome.** → Chrome ignores `preventDefault()` on a
   repeated `cancel` without user activation in between, and synthetic Escape never fires `cancel`. → Handle Escape in
@@ -209,6 +253,22 @@ Format: **symptom** → cause → fix. Newest entries go at the top of their sec
 
 ## Testing
 
+
+- **`userEvent.type(button, '{Escape}')` closes a dialog with reason `close` instead of `escape`.** → `type()`
+  clicks the element first. → Use `userEvent.keyboard('{Escape}')`.
+- **`document.body.innerHTML = ''` between renders leaks React roots.** → RTL cleanup never runs for the wiped
+  tree. → Use the `unmount()` returned by `render()`.
+- **Shared chassis class + component class on the same element fought over `gap`/`font-size`.** → Same
+  specificity across two modules. → The shared module reads `var(--_field-gap, …)`; component modules only set
+  those variables and non-overlapping properties.
+- **Storybook play tests: a synthetic ArrowRight never steps a range input; `toBeVisible()` fails on something
+  fading in.** → Browsers only step native controls on trusted key events; jest-dom treats `opacity: 0` as
+  invisible. → Drive ranges with `fireEvent.input`; wrap visibility assertions on animated elements in `waitFor`.
+- **axe reports `region` ("content not contained by landmarks") on every component.** → Page-level rule. →
+  Disabled in `src/test/axe.ts`, as Storybook's addon does.
+- **A story passes `npm test` but its play function fails in Storybook.** → `src/test/stories.test.tsx` only renders
+  + runs axe under jsdom; play functions need a real browser (no Popover API, exclusive `<details>`, range stepping
+  or container queries in jsdom). → Run them in Storybook (or drive `iframe.html` through the Storybook channel).
 - **axe reports a contrast failure on a solid Button (e.g. white on indigo-400) in light mode.** → With a dark OS,
   Storybook first paints dark and then sets `data-theme="light"`, so colour transitions start from the dark values. In a
   background tab the animation clock is frozen at frame 0. → Call `document.getAnimations().forEach(a => a.finish())`

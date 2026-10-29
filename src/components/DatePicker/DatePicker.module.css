@@ -18,7 +18,57 @@
   }
 
   .field {
+    position: relative; /* anchors the clear button */
     display: flex;
+  }
+
+  /* Clear button: pinned over the trigger's end padding, before the calendar glyph. */
+  .clear {
+    --_clear-size: calc(var(--gds-control-height-sm) - var(--gds-space-2));
+
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-end: calc(var(--gds-space-3) + var(--_icon-size, var(--gds-space-4)) + var(--gds-space-1));
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: var(--_clear-size);
+    block-size: var(--_clear-size);
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: var(--gds-radius-sm);
+    background: transparent;
+    color: var(--gds-text-secondary);
+    cursor: pointer;
+    transform: translateY(-50%);
+    transition-property: background-color, color;
+    transition-duration: var(--gds-duration-fast);
+    transition-timing-function: var(--gds-easing-standard);
+  }
+
+  .clear:hover {
+    background-color: var(--gds-surface-selected);
+    color: var(--gds-text-primary);
+  }
+
+  .clear:focus-visible {
+    outline: 2px solid var(--gds-focus-ring);
+    outline-offset: 1px;
+  }
+
+  .clearGlyph {
+    inline-size: var(--gds-space-3);
+    block-size: var(--gds-space-3);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.75;
+    stroke-linecap: round;
+  }
+
+  /* Room for the clear button so the value text doesn't run under it. */
+  .trigger[data-clearable] {
+    padding-inline-end: calc(var(--gds-space-3) + var(--_icon-size) + var(--gds-space-1) + var(--gds-control-height-sm));
   }
 
   .trigger {
@@ -38,9 +88,9 @@
     font-size: var(--gds-font-size-sm);
     text-align: start;
     cursor: pointer;
-    transition:
-      border-color var(--gds-duration-fast) var(--gds-easing-standard),
-      background-color var(--gds-duration-fast) var(--gds-easing-standard);
+    transition-property: border-color, background-color;
+    transition-duration: var(--gds-duration-fast);
+    transition-timing-function: var(--gds-easing-standard);
   }
 
   .trigger:hover:not(:disabled) {
@@ -84,7 +134,9 @@
     background-color: var(--gds-text-secondary);
     -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2.25' y='3.25' width='11.5' height='10.5' rx='2.25'/%3E%3Cpath d='M2.25 6.75h11.5M5.25 1.75v3M10.75 1.75v3'/%3E%3C/svg%3E") center / contain no-repeat;
     mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2.25' y='3.25' width='11.5' height='10.5' rx='2.25'/%3E%3Cpath d='M2.25 6.75h11.5M5.25 1.75v3M10.75 1.75v3'/%3E%3C/svg%3E") center / contain no-repeat;
-    transition: background-color var(--gds-duration-fast) var(--gds-easing-standard);
+    transition-property: background-color;
+    transition-duration: var(--gds-duration-fast);
+    transition-timing-function: var(--gds-easing-standard);
   }
 
   .trigger:hover:not(:disabled) .icon,
@@ -197,6 +249,9 @@
     }
     .trigger[aria-expanded='true'] {
       border-color: Highlight;
+    }
+    .clear {
+      color: ButtonText;
     }
   }
 }

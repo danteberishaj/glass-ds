@@ -1,10 +1,17 @@
 @layer gds.components {
-  /* Drawn with a border, not a background, so forced-colors mode keeps it visible. */
+  /*
+   * An <hr> with the UA look reset (inset border, margins, colour), then drawn with a border, not
+   * a background, so forced-colors mode keeps it visible.
+   */
   .root {
+    display: block;
     flex-shrink: 0;
     box-sizing: border-box;
     margin: 0;
+    padding: 0;
+    overflow: visible;
     border: 0 solid var(--gds-border-subtle);
+    color: var(--gds-border-subtle);
   }
 
   .root[data-orientation='horizontal'] {

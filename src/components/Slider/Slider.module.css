@@ -1,22 +1,10 @@
+/* Wrapper, label and hint come from src/internal/field.module.css. */
 @layer gds.components {
-  .root {
-    display: flex;
-    flex-direction: column;
-    gap: var(--gds-space-2);
-    font-family: var(--gds-font-family-sans);
-  }
-
   .header {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
     gap: var(--gds-space-3);
-  }
-
-  .label {
-    font-size: var(--gds-font-size-sm);
-    font-weight: var(--gds-font-weight-medium);
-    color: var(--gds-text-primary);
   }
 
   .value {
@@ -34,8 +22,8 @@
    */
   .input {
     --_progress: 0;
-    --_track-h: 6px;
-    --_thumb: 20px;
+    --_track-h: var(--gds-control-slider-track);
+    --_thumb: var(--gds-control-slider-thumb);
     --_fill: var(--gds-accent);
     --_track: var(--gds-surface-track);
     --_track-edge: var(--gds-border-subtle);
@@ -70,6 +58,10 @@
 
   .input:active:not(:disabled) {
     --_thumb-scale: 1.15;
+  }
+
+  .input[aria-invalid='true'] {
+    --_fill: var(--gds-danger);
   }
 
   .input:focus-visible {
@@ -136,11 +128,6 @@
     transition-property: transform, border-color;
     transition-duration: var(--gds-duration-spring-bounce), var(--gds-duration-fast);
     transition-timing-function: var(--gds-easing-spring-bounce), var(--gds-easing-standard);
-  }
-
-  .hint {
-    font-size: var(--gds-font-size-xs);
-    color: var(--gds-text-secondary);
   }
 
   @media (prefers-reduced-motion: reduce) {

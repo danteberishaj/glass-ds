@@ -1,18 +1,15 @@
+/* Wrapper, label, hint and error typography come from src/internal/field.module.css. */
 @layer gds.components {
   .root {
-    --_box: 20px;
-    --_font-size: var(--gds-font-size-sm);
+    --_box: var(--gds-control-box-md);
+    --_label-size: var(--gds-font-size-sm);
     --_gap: var(--gds-space-3);
-
-    display: flex;
-    flex-direction: column;
-    gap: var(--gds-space-1);
-    font-family: var(--gds-font-family-sans);
+    --_field-gap: var(--gds-space-1);
   }
 
   .root[data-size='sm'] {
-    --_box: 16px;
-    --_font-size: var(--gds-font-size-xs);
+    --_box: var(--gds-control-box-sm);
+    --_label-size: var(--gds-font-size-xs);
     --_gap: var(--gds-space-2);
   }
 
@@ -40,8 +37,8 @@
     block-size: var(--_box);
     margin: 0;
     /* Centre the box on the label's first line. */
-    margin-block-start: max(0px, calc((var(--_font-size) * var(--gds-font-line-height-normal) - var(--_box)) / 2));
-    border: 1.5px solid var(--_border);
+    margin-block-start: max(0px, calc((var(--_label-size) * var(--gds-font-line-height-normal) - var(--_box)) / 2));
+    border: var(--gds-control-border-width) solid var(--_border);
     border-radius: calc(var(--gds-radius-sm) / 2);
     background-color: var(--_bg);
     color: var(--gds-text-on-accent);
@@ -138,10 +135,6 @@
   }
 
   .label {
-    font-size: var(--_font-size);
-    font-weight: var(--gds-font-weight-medium);
-    line-height: var(--gds-font-line-height-normal);
-    color: var(--gds-text-primary);
     cursor: pointer;
     user-select: none;
   }
@@ -151,20 +144,9 @@
     opacity: var(--gds-opacity-disabled);
   }
 
-  .hint,
-  .error {
+  /* Messages line up with the label, not the box. */
+  .message {
     padding-inline-start: calc(var(--_box) + var(--_gap));
-    font-size: var(--gds-font-size-xs);
-    line-height: var(--gds-font-line-height-normal);
-  }
-
-  .hint {
-    color: var(--gds-text-secondary);
-  }
-
-  .error {
-    font-weight: var(--gds-font-weight-medium);
-    color: var(--gds-danger);
   }
 
   @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
