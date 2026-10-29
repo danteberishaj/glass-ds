@@ -1,0 +1,170 @@
+@layer gds.components {
+  .root {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gds-space-2);
+    font-family: var(--gds-font-family-sans);
+  }
+
+  .header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--gds-space-3);
+  }
+
+  .label {
+    font-size: var(--gds-font-size-sm);
+    font-weight: var(--gds-font-weight-medium);
+    color: var(--gds-text-primary);
+  }
+
+  .value {
+    margin-inline-start: auto;
+    font-size: var(--gds-font-size-sm);
+    font-weight: var(--gds-font-weight-medium);
+    font-variant-numeric: tabular-nums;
+    color: var(--gds-text-secondary);
+  }
+
+  /*
+   * --_progress (0..1) comes from Slider.tsx. WebKit/Blink paint the fill as a gradient on the track;
+   * the stop is offset by half a thumb so the fill ends under the thumb's centre at every value.
+   * Firefox uses its native ::-moz-range-progress instead.
+   */
+  .input {
+    --_progress: 0;
+    --_track-h: 6px;
+    --_thumb: 20px;
+    --_fill: var(--gds-accent);
+    --_track: var(--gds-surface-track);
+    --_track-edge: var(--gds-border-subtle);
+    --_thumb-bg: var(--gds-surface-solid-strong);
+    --_thumb-scale: 1;
+    --_dir: to right;
+
+    appearance: none;
+    display: block;
+    inline-size: 100%;
+    block-size: var(--_thumb);
+    margin: 0;
+    padding: 0;
+    border-radius: var(--gds-radius-full);
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .input:dir(rtl) {
+    --_dir: to left;
+  }
+
+  /*
+   * The thumb grows on hover and a bit more while dragged, on the bouncy spring (it settles with a
+   * small overshoot). The fill is not transitioned on purpose: the thumb position is native and
+   * instant, so an animated fill would visibly lag behind it.
+   */
+  .input:hover:not(:disabled) {
+    --_fill: var(--gds-accent-hover);
+    --_thumb-scale: 1.1;
+  }
+
+  .input:active:not(:disabled) {
+    --_thumb-scale: 1.15;
+  }
+
+  .input:focus-visible {
+    outline: 2px solid var(--gds-focus-ring);
+    outline-offset: 2px;
+  }
+
+  .input:disabled {
+    cursor: not-allowed;
+    opacity: var(--gds-opacity-disabled);
+  }
+
+  /* WebKit / Blink */
+  .input::-webkit-slider-runnable-track {
+    block-size: var(--_track-h);
+    border-radius: var(--gds-radius-full);
+    background: linear-gradient(
+      var(--_dir),
+      var(--_fill) calc(var(--_thumb) / 2 + (100% - var(--_thumb)) * var(--_progress)),
+      var(--_track) 0
+    );
+    box-shadow: inset 0 0 0 1px var(--_track-edge);
+  }
+
+  .input::-webkit-slider-thumb {
+    appearance: none;
+    box-sizing: border-box;
+    inline-size: var(--_thumb);
+    block-size: var(--_thumb);
+    margin-block-start: calc((var(--_track-h) - var(--_thumb)) / 2);
+    border: 2px solid var(--_fill);
+    border-radius: var(--gds-radius-full);
+    background-color: var(--_thumb-bg);
+    box-shadow: var(--gds-shadow-glass);
+    transform: scale(var(--_thumb-scale));
+    transition-property: transform, border-color;
+    transition-duration: var(--gds-duration-spring-bounce), var(--gds-duration-fast);
+    transition-timing-function: var(--gds-easing-spring-bounce), var(--gds-easing-standard);
+  }
+
+  /* Firefox */
+  .input::-moz-range-track {
+    block-size: var(--_track-h);
+    border-radius: var(--gds-radius-full);
+    background-color: var(--_track);
+    box-shadow: inset 0 0 0 1px var(--_track-edge);
+  }
+
+  .input::-moz-range-progress {
+    block-size: var(--_track-h);
+    border-radius: var(--gds-radius-full);
+    background-color: var(--_fill);
+  }
+
+  .input::-moz-range-thumb {
+    box-sizing: border-box;
+    inline-size: var(--_thumb);
+    block-size: var(--_thumb);
+    border: 2px solid var(--_fill);
+    border-radius: var(--gds-radius-full);
+    background-color: var(--_thumb-bg);
+    box-shadow: var(--gds-shadow-glass);
+    transform: scale(var(--_thumb-scale));
+    transition-property: transform, border-color;
+    transition-duration: var(--gds-duration-spring-bounce), var(--gds-duration-fast);
+    transition-timing-function: var(--gds-easing-spring-bounce), var(--gds-easing-standard);
+  }
+
+  .hint {
+    font-size: var(--gds-font-size-xs);
+    color: var(--gds-text-secondary);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .input::-webkit-slider-thumb { transition: none; }
+    .input::-moz-range-thumb { transition: none; }
+    .input:hover:not(:disabled),
+    .input:active:not(:disabled) { --_thumb-scale: 1; }
+  }
+
+  @media (forced-colors: active) {
+    .input,
+    .input:hover:not(:disabled) {
+      forced-color-adjust: none;
+      --_fill: Highlight;
+      --_track: Canvas;
+      --_track-edge: CanvasText;
+      --_thumb-bg: Canvas;
+    }
+    .input:disabled {
+      --_fill: GrayText;
+      --_track-edge: GrayText;
+      opacity: 1;
+    }
+    .input::-webkit-slider-thumb { box-shadow: none; }
+    .input::-moz-range-thumb { box-shadow: none; }
+  }
+}

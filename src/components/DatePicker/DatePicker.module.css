@@ -1,0 +1,202 @@
+@layer gds.components {
+  /* Field: mirrors TextField/Select so the three line up in a form. */
+  .root {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gds-space-2);
+    font-family: var(--gds-font-family-sans);
+  }
+
+  .label {
+    font-size: var(--gds-font-size-sm);
+    font-weight: var(--gds-font-weight-medium);
+    color: var(--gds-text-primary);
+  }
+
+  .required {
+    color: var(--gds-danger-text);
+  }
+
+  .field {
+    display: flex;
+  }
+
+  .trigger {
+    --_icon-size: var(--gds-space-4);
+
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--gds-space-2);
+    min-inline-size: 0;
+    min-height: var(--gds-control-height-md);
+    margin: 0;
+    padding-inline: var(--gds-space-3);
+    border-radius: var(--gds-radius-md);
+    font: inherit;
+    font-size: var(--gds-font-size-sm);
+    text-align: start;
+    cursor: pointer;
+    transition:
+      border-color var(--gds-duration-fast) var(--gds-easing-standard),
+      background-color var(--gds-duration-fast) var(--gds-easing-standard);
+  }
+
+  .trigger:hover:not(:disabled) {
+    --_fill: var(--gds-surface-glass-strong);
+  }
+
+  .trigger[aria-expanded='true'] {
+    border-color: var(--gds-accent);
+  }
+
+  .trigger:focus-visible {
+    outline: 2px solid var(--gds-focus-ring);
+    outline-offset: 2px;
+  }
+
+  .trigger[aria-invalid='true'] {
+    border-color: var(--gds-danger);
+  }
+
+  .trigger:disabled {
+    cursor: not-allowed;
+    opacity: var(--gds-opacity-disabled);
+  }
+
+  .value {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .trigger[data-placeholder] .value {
+    color: var(--gds-text-secondary);
+  }
+
+  /* Calendar glyph: a mask painted with a token colour, no icon dependency. */
+  .icon {
+    flex: none;
+    inline-size: var(--_icon-size);
+    block-size: var(--_icon-size);
+    background-color: var(--gds-text-secondary);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2.25' y='3.25' width='11.5' height='10.5' rx='2.25'/%3E%3Cpath d='M2.25 6.75h11.5M5.25 1.75v3M10.75 1.75v3'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2.25' y='3.25' width='11.5' height='10.5' rx='2.25'/%3E%3Cpath d='M2.25 6.75h11.5M5.25 1.75v3M10.75 1.75v3'/%3E%3C/svg%3E") center / contain no-repeat;
+    transition: background-color var(--gds-duration-fast) var(--gds-easing-standard);
+  }
+
+  .trigger:hover:not(:disabled) .icon,
+  .trigger[aria-expanded='true'] .icon {
+    background-color: var(--gds-text-primary);
+  }
+
+  .hint {
+    font-size: var(--gds-font-size-xs);
+    color: var(--gds-text-secondary);
+  }
+
+  .error {
+    font-size: var(--gds-font-size-xs);
+    font-weight: var(--gds-font-weight-medium);
+    color: var(--gds-danger);
+  }
+
+  /* ---- Popover ------------------------------------------------------------- */
+
+  /*
+   * [popover] lifts these over the UA popover rules and `.gds-glass`. useAnchoredPosition writes
+   * position/inset/margin/top/left inline; the margin/inset here also cover the first frame.
+   */
+  .popover[popover] {
+    --_from-y: calc(var(--gds-space-1) * -1);
+    --_origin-y: top;
+    --_origin-x: left;
+    --_closed-transform: translateY(var(--_from-y)) scale(0.96);
+
+    position: fixed;
+    inset: auto;
+    margin: 0;
+    padding: var(--gds-space-3);
+    overflow: visible;
+    border-radius: var(--gds-radius-lg);
+    box-shadow: var(--gds-shadow-glass-raised);
+    color: var(--gds-text-primary);
+    font-family: var(--gds-font-family-sans);
+    transform-origin: var(--_origin-x) var(--_origin-y);
+
+    /* Exit (the closed state's transition): quick, no spring. */
+    opacity: 0;
+    transform: var(--_closed-transform);
+    transition-property: opacity, transform, display, overlay;
+    transition-duration: var(--gds-duration-fast);
+    transition-timing-function: var(--gds-easing-out);
+    /* Separate longhand: browsers without allow-discrete drop only this line (see GOTCHA). */
+    transition-behavior: allow-discrete;
+  }
+
+  /* Grow out of the side that touches the field (data-placement is written by the hook). */
+  .popover[popover][data-placement^='top'] {
+    --_from-y: var(--gds-space-1);
+    --_origin-y: bottom;
+  }
+  .popover[popover][data-placement$='end'] { --_origin-x: right; }
+  .popover[popover]:dir(rtl) { --_origin-x: right; }
+  .popover[popover][data-placement$='end']:dir(rtl) { --_origin-x: left; }
+
+  /* Entry: spring. */
+  .popover[popover]:popover-open {
+    opacity: 1;
+    transform: none;
+    transition-duration: var(--gds-duration-spring-snappy);
+    transition-timing-function: var(--gds-easing-spring-snappy);
+  }
+
+  @starting-style {
+    .popover[popover]:popover-open {
+      opacity: 0;
+      transform: var(--_closed-transform);
+    }
+  }
+
+  /* No Popover API (Safari < 17, Firefox < 125): React state drives visibility. */
+  @supports not selector(:popover-open) {
+    .popover[popover] {
+      display: none;
+      z-index: var(--gds-z-index-dropdown);
+    }
+    .popover[popover][data-open] {
+      display: block;
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .popover[popover],
+    .popover[popover]:popover-open {
+      --_closed-transform: none;
+      transition-property: opacity, display, overlay;
+      transition-duration: var(--gds-duration-fast);
+      transition-timing-function: var(--gds-easing-standard);
+    }
+    .trigger,
+    .icon {
+      transition: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .icon {
+      forced-color-adjust: none;
+      background-color: CanvasText;
+    }
+    .trigger:disabled .icon {
+      background-color: GrayText;
+    }
+    .trigger[aria-expanded='true'] {
+      border-color: Highlight;
+    }
+  }
+}

@@ -1,0 +1,41 @@
+@layer gds.components {
+  .root {
+    --_height: var(--gds-space-6);
+    --_padding-x: var(--gds-space-2);
+    --_font-size: var(--gds-font-size-xs);
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-inline-size: var(--_height);
+    min-block-size: var(--_height);
+    padding-inline: var(--_padding-x);
+    border-radius: var(--gds-radius-sm);
+    font-family: var(--gds-font-family-mono);
+    font-size: var(--_font-size);
+    font-weight: var(--gds-font-weight-medium);
+    line-height: 1;
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+
+  .root[data-size='sm'] {
+    --_height: var(--gds-space-5);
+    --_padding-x: var(--gds-space-1);
+  }
+
+  /*
+   * Keycap: top highlight + a bottom "lip". Small blur (tiny surface, often several in a row).
+   * [data-size] is always present and out-specifies `.gds-glass`.
+   */
+  .root[data-size] {
+    --_fill: var(--gds-surface-glass-strong);
+    --_blur: var(--gds-blur-sm);
+    border-block-end-width: 2px;
+    box-shadow:
+      inset 0 1px 0 var(--gds-border-glass-highlight),
+      inset 0 -1px 0 var(--gds-border-subtle);
+    color: var(--gds-text-primary);
+  }
+}

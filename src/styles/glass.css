@@ -36,11 +36,69 @@
     }
   }
 
+  /*
+   * Sheen: opt-in specular highlight that sweeps across once on hover / keyboard focus, like light
+   * catching the edge of a pane. Add `GLASS_SHEEN_CLASS` (.gds-sheen) or `data-sheen` to any element
+   * (glass or not) whose own ::after is free.
+   *
+   * - Only `transform` and `opacity` animate; the gradient never repaints mid-sweep.
+   * - The host clips with `overflow: clip`. That clips descendants only: the host's own outline
+   *   (focus ring) and box-shadow are painted outside the clip, so focus rings stay intact.
+   *   Children's focus rings near the edge *are* clipped, so keep padding on hosts with children.
+   * - `isolation: isolate` + `z-index: -1` paints the sheen above the host's fill but below its text.
+   * - :where() keeps host specificity at 0, so a component's own position/overflow always wins.
+   * - Sweep length is 2 × duration-slow (640ms) until a --gds-duration-sheen token exists.
+   * - Leaving hover: the band fades out first, then jumps back (0s, delayed) while invisible.
+   */
+  :where(.gds-sheen, [data-sheen]) {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden; /* fallback for browsers without overflow: clip (Safari < 16) */
+    overflow: clip;
+  }
+
+  :where(.gds-sheen, [data-sheen])::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background-image: linear-gradient(
+      105deg,
+      transparent 30%,
+      var(--gds-border-glass-highlight) 50%,
+      transparent 70%
+    );
+    opacity: 0;
+    transform: translateX(-100%);
+    pointer-events: none;
+    transition-property: opacity, transform;
+    transition-duration: var(--gds-duration-normal), 0s;
+    transition-timing-function: var(--gds-easing-out);
+    transition-delay: 0s, var(--gds-duration-normal);
+  }
+
+  :where(.gds-sheen, [data-sheen]):is(:hover, :focus-visible):not(:disabled, [aria-disabled='true'])::after {
+    opacity: var(--gds-opacity-muted);
+    transform: translateX(100%);
+    transition-duration: var(--gds-duration-fast), var(--gds-duration-sheen);
+    transition-delay: 0s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :where(.gds-sheen, [data-sheen])::after {
+      display: none;
+    }
+  }
+
   @media (prefers-reduced-transparency: reduce) {
     .gds-glass {
       background-color: var(--gds-surface-solid);
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
+    }
+    :where(.gds-sheen, [data-sheen])::after {
+      display: none;
     }
   }
 
@@ -50,6 +108,9 @@
       border-color: var(--gds-border-strong);
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
+    }
+    :where(.gds-sheen, [data-sheen])::after {
+      display: none;
     }
   }
 
@@ -61,6 +122,9 @@
       box-shadow: none;
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
+    }
+    :where(.gds-sheen, [data-sheen])::after {
+      display: none;
     }
   }
 }

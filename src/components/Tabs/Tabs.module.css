@@ -1,0 +1,314 @@
+@layer gds.components {
+  .root {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gds-space-4);
+    font-family: var(--gds-font-family-sans);
+    color: var(--gds-text-primary);
+  }
+
+  .root[data-orientation='vertical'] {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  /* ---- List ---------------------------------------------------------------- */
+
+  .list {
+    /* Tab height. The glass track adds its padding on top: sm 24+8 = 32, md 32+8 = 40 (Button heights). */
+    --_tab-height: 32px;
+    --_track-padding: var(--gds-space-1);
+    --_padding-x: var(--gds-space-4);
+    --_font-size: var(--gds-font-size-sm);
+
+    position: relative; /* offsetParent for the tabs, containing block for the indicator */
+    isolation: isolate;
+    display: inline-flex;
+    align-self: flex-start;
+    max-width: 100%;
+    gap: var(--gds-space-1);
+  }
+
+  .list[data-size='sm'] {
+    --_tab-height: 24px;
+    --_padding-x: var(--gds-space-3);
+    --_font-size: var(--gds-font-size-xs);
+  }
+
+  .list[data-orientation='vertical'] {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .list[data-variant='glass'] {
+    padding: var(--_track-padding);
+    border-radius: var(--gds-radius-full);
+  }
+
+  .list[data-variant='glass'][data-orientation='vertical'] {
+    border-radius: var(--gds-radius-lg);
+  }
+
+  .list[data-variant='underline'] {
+    /* No track: tabs take the full control height. */
+    --_tab-height: 40px;
+    gap: var(--gds-space-2);
+    box-shadow: inset 0 -1px 0 var(--gds-border-subtle);
+  }
+
+  .list[data-variant='underline'][data-size='sm'] {
+    --_tab-height: 32px;
+  }
+
+  .list[data-variant='underline'][data-orientation='vertical'] {
+    gap: 0;
+    box-shadow: inset 1px 0 0 var(--gds-border-subtle);
+  }
+
+  /* ---- Tab ----------------------------------------------------------------- */
+
+  .tab {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--gds-space-2);
+    min-height: var(--_tab-height);
+    padding-inline: var(--_padding-x);
+    border: 1px solid transparent;
+    background: transparent;
+    font: inherit;
+    font-size: var(--_font-size);
+    font-weight: var(--gds-font-weight-medium);
+    line-height: 1;
+    white-space: nowrap;
+    color: var(--gds-text-secondary);
+    cursor: pointer;
+    user-select: none;
+    transition:
+      background-color var(--gds-duration-fast) var(--gds-easing-standard),
+      color var(--gds-duration-fast) var(--gds-easing-standard),
+      box-shadow var(--gds-duration-fast) var(--gds-easing-standard);
+  }
+
+  .tab[data-orientation='vertical'] {
+    justify-content: flex-start;
+  }
+
+  .tab:hover:not(:disabled),
+  .tab[aria-selected='true'] {
+    color: var(--gds-text-primary);
+  }
+
+  .tab:focus-visible {
+    outline: 2px solid var(--gds-focus-ring);
+    outline-offset: 2px;
+  }
+
+  .tab:disabled {
+    cursor: not-allowed;
+    opacity: var(--gds-opacity-disabled);
+  }
+
+  /* glass: pill tabs in the glass track; the active pill is a stronger fill (not nested glass, see GOTCHA) */
+  .tab[data-variant='glass'] {
+    border-radius: var(--gds-radius-full);
+  }
+
+  .tab[data-variant='glass'][data-orientation='vertical'] {
+    border-radius: var(--gds-radius-md);
+  }
+
+  .tab[data-variant='glass']:hover:not(:disabled, [aria-selected='true']) {
+    background-color: var(--gds-surface-glass-subtle);
+  }
+
+  .tab[data-variant='glass'][aria-selected='true'] {
+    background-color: var(--gds-surface-selected);
+    border-color: var(--gds-border-glass-highlight);
+    box-shadow: var(--gds-shadow-glass);
+    font-weight: var(--gds-font-weight-semibold);
+  }
+
+  /* underline: accent bar under (or beside, when vertical) the active tab */
+  .tab[data-variant='underline'] {
+    border-radius: var(--gds-radius-sm);
+  }
+
+  .tab[data-variant='underline']::after {
+    content: '';
+    position: absolute;
+    inset-inline: var(--gds-space-2);
+    bottom: 0;
+    height: 2px;
+    border-radius: var(--gds-radius-full);
+    background-color: transparent;
+    transition: background-color var(--gds-duration-fast) var(--gds-easing-standard);
+  }
+
+  .tab[data-variant='underline'][data-orientation='vertical']::after {
+    inset-inline: 0 auto;
+    inset-block: var(--gds-space-1);
+    width: 2px;
+    height: auto;
+  }
+
+  .tab[data-variant='underline']:hover:not(:disabled, [aria-selected='true'])::after {
+    background-color: var(--gds-border-subtle);
+  }
+
+  .tab[data-variant='underline'][aria-selected='true']::after {
+    background-color: var(--gds-accent);
+  }
+
+  /* ---- Sliding indicator ---------------------------------------------------- */
+
+  /*
+   * One element per list that slides and resizes to the selected tab. Tabs.tsx measures the tab
+   * (offsetLeft/Top/Width/Height, physical, so RTL needs nothing extra) into --_indicator-* and sets
+   * [data-indicator-ready]. Before that (SSR, no JS) it stays display:none and the selected tab paints
+   * its own pill/underline (rules above), so first paint is correct and nothing shifts on hydration.
+   * width/height transition too: it's absolutely positioned, so that relayout touches only itself.
+   */
+  .indicator {
+    display: none;
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    left: 0;
+    box-sizing: border-box;
+    width: var(--_indicator-w);
+    height: var(--_indicator-h);
+    transform: translate(var(--_indicator-x), var(--_indicator-y));
+    pointer-events: none;
+    transition-property: transform, width, height;
+    transition-duration: var(--gds-duration-spring-snappy);
+    transition-timing-function: var(--gds-easing-spring-snappy);
+  }
+
+  .list[data-indicator-ready] > .indicator {
+    display: block;
+  }
+
+  .list[data-variant='glass'] > .indicator {
+    border: 1px solid var(--gds-border-glass-highlight);
+    border-radius: var(--gds-radius-full);
+    background-color: var(--gds-surface-selected);
+    box-shadow: var(--gds-shadow-glass);
+  }
+
+  .list[data-variant='glass'][data-orientation='vertical'] > .indicator {
+    border-radius: var(--gds-radius-md);
+  }
+
+  /* underline: a 2px bar, inset like the per-tab ::after it replaces */
+  .list[data-variant='underline'] > .indicator {
+    top: auto;
+    bottom: 0;
+    width: calc(var(--_indicator-w) - var(--gds-space-2) * 2);
+    height: 2px;
+    border-radius: var(--gds-radius-full);
+    background-color: var(--gds-accent);
+    transform: translateX(calc(var(--_indicator-x) + var(--gds-space-2)));
+  }
+
+  .list[data-variant='underline'][data-orientation='vertical'] > .indicator {
+    top: 0;
+    bottom: auto;
+    width: 2px;
+    height: calc(var(--_indicator-h) - var(--gds-space-1) * 2);
+    transform: translateY(calc(var(--_indicator-y) + var(--gds-space-1)));
+  }
+
+  /*
+   * Indicator live: the selected tab stops drawing its own selection. Unconditional on purpose (no
+   * `not (forced-colors)` query: browsers that don't know the feature would skip it and draw both).
+   */
+  .list[data-indicator-ready] .tab[data-variant='glass'][aria-selected='true'] {
+    background-color: transparent;
+    border-color: transparent;
+    box-shadow: none;
+  }
+
+  .list[data-indicator-ready] .tab[data-variant='underline'][aria-selected='true']::after {
+    background-color: transparent;
+  }
+
+  /* ---- Panel --------------------------------------------------------------- */
+
+  .panel {
+    flex: 1;
+    min-width: 0;
+    border-radius: var(--gds-radius-md);
+    font-size: var(--gds-font-size-sm);
+    line-height: var(--gds-font-line-height-normal);
+  }
+
+  .panel:focus-visible {
+    outline: 2px solid var(--gds-focus-ring);
+    outline-offset: 2px;
+  }
+
+  /*
+   * A newly shown panel (hidden → shown) rises 4px and fades in. Panels holding glass don't fade:
+   * opacity < 1 on an ancestor makes it the backdrop root, so the glass inside would lose its blur
+   * for the length of the fade and then snap (see GOTCHA). They still rise.
+   */
+  .panel {
+    transition-property: opacity, transform;
+    transition-duration: var(--gds-duration-normal), var(--gds-duration-spring-snappy);
+    transition-timing-function: var(--gds-easing-out), var(--gds-easing-spring-snappy);
+  }
+
+  @starting-style {
+    .panel {
+      opacity: 0;
+      transform: translateY(var(--gds-space-1));
+    }
+
+    .panel:has(:global(.gds-glass)) {
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tab,
+    .tab::after,
+    .indicator {
+      transition: none;
+    }
+
+    /* Fade only. */
+    .panel {
+      transition-property: opacity;
+    }
+  }
+
+  @media (forced-colors: active) {
+    /* Selection is shown by color only, so paint it with system colors. */
+    .tab[data-variant='glass'][aria-selected='true'] {
+      forced-color-adjust: none;
+      background-color: Highlight;
+      color: HighlightText;
+      border-color: Highlight;
+    }
+
+    .tab[data-variant='underline'][aria-selected='true']::after {
+      forced-color-adjust: none;
+      background-color: Highlight;
+    }
+
+    .tab:disabled {
+      color: GrayText;
+      opacity: 1;
+    }
+
+    /* The indicator carries selection: Highlight behind the tab's HighlightText (rule above). */
+    .indicator {
+      forced-color-adjust: none;
+      background-color: Highlight;
+      border-color: Highlight;
+      box-shadow: none;
+    }
+  }
+}

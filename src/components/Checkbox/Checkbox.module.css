@@ -1,0 +1,216 @@
+@layer gds.components {
+  .root {
+    --_box: 20px;
+    --_font-size: var(--gds-font-size-sm);
+    --_gap: var(--gds-space-3);
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--gds-space-1);
+    font-family: var(--gds-font-family-sans);
+  }
+
+  .root[data-size='sm'] {
+    --_box: 16px;
+    --_font-size: var(--gds-font-size-xs);
+    --_gap: var(--gds-space-2);
+  }
+
+  .row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--_gap);
+  }
+
+  /*
+   * The native input is the visible box (appearance: none). No backdrop blur on something this small:
+   * a translucent strong fill reads as glass, and each blur is a compositing layer (see CLAUDE.md).
+   * The boundary uses border-strong, not border-glass, for >= 3:1 non-text contrast.
+   */
+  .control {
+    --_bg: var(--gds-surface-glass-strong);
+    --_border: var(--gds-border-strong);
+
+    appearance: none;
+    flex: none;
+    display: inline-grid;
+    place-content: center;
+    box-sizing: border-box;
+    inline-size: var(--_box);
+    block-size: var(--_box);
+    margin: 0;
+    /* Centre the box on the label's first line. */
+    margin-block-start: max(0px, calc((var(--_font-size) * var(--gds-font-line-height-normal) - var(--_box)) / 2));
+    border: 1.5px solid var(--_border);
+    border-radius: calc(var(--gds-radius-sm) / 2);
+    background-color: var(--_bg);
+    color: var(--gds-text-on-accent);
+    cursor: pointer;
+    /* Press squeezes the box fast; release (which toggles) springs it back with a small pop. */
+    --_press-duration: var(--gds-duration-spring-bounce);
+    --_press-easing: var(--gds-easing-spring-bounce);
+
+    transition-property: background-color, border-color, transform;
+    transition-duration: var(--gds-duration-fast), var(--gds-duration-fast), var(--_press-duration);
+    transition-timing-function: var(--gds-easing-standard), var(--gds-easing-standard), var(--_press-easing);
+  }
+
+  .control:active:not(:disabled) {
+    --_press-duration: var(--gds-duration-fast);
+    --_press-easing: var(--gds-easing-out);
+    transform: scale(0.9);
+  }
+
+  /* The mark: a mask (shape only), painted with currentColor so the colour stays a token. */
+  .control::before {
+    --_mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 8.5l3 3 6-7'/%3E%3C/svg%3E");
+
+    content: '';
+    inline-size: calc(var(--_box) * 0.8);
+    block-size: calc(var(--_box) * 0.8);
+    background-color: currentColor;
+    -webkit-mask: var(--_mark) center / contain no-repeat;
+    mask: var(--_mark) center / contain no-repeat;
+    /*
+     * The tick "draws" left to right by unclipping (a mask image can't stroke-dash). Unchecking
+     * fades it out, then re-clips it while invisible (0s, delayed), so it never wipes backwards.
+     * clip-path on a 16px box is a trivial repaint.
+     */
+    clip-path: inset(0 100% 0 0);
+    opacity: 0;
+    transition-property: opacity, clip-path;
+    transition-duration: var(--gds-duration-fast), 0s;
+    transition-timing-function: var(--gds-easing-out);
+    transition-delay: 0s, var(--gds-duration-fast);
+  }
+
+  .control:hover:not(:disabled) {
+    --_border: var(--gds-text-primary);
+  }
+
+  .control:checked,
+  .control:indeterminate {
+    --_bg: var(--gds-accent);
+    --_border: var(--gds-accent);
+  }
+
+  .control:checked:hover:not(:disabled),
+  .control:indeterminate:hover:not(:disabled) {
+    --_bg: var(--gds-accent-hover);
+    --_border: var(--gds-accent-hover);
+  }
+
+  .control:checked::before {
+    clip-path: inset(0);
+    opacity: 1;
+    transition-duration: var(--gds-duration-fast), var(--gds-duration-slow);
+    transition-delay: 0s;
+  }
+
+  /* The dash grows from its centre instead (a keyframe, since the clip would wipe from one side). */
+  .control:indeterminate::before {
+    --_mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M4 8h8'/%3E%3C/svg%3E");
+
+    clip-path: inset(0);
+    opacity: 1;
+    transition-duration: var(--gds-duration-fast), 0s;
+    transition-delay: 0s;
+    animation: dashIn var(--gds-duration-spring-snappy) var(--gds-easing-spring-snappy);
+  }
+
+  @keyframes dashIn {
+    from { transform: scaleX(0); }
+  }
+
+  .control[aria-invalid='true'],
+  .control[aria-invalid='true']:hover:not(:disabled) {
+    --_border: var(--gds-danger);
+  }
+
+  .control:focus-visible {
+    outline: 2px solid var(--gds-focus-ring);
+    outline-offset: 2px;
+  }
+
+  .control:disabled {
+    cursor: not-allowed;
+    opacity: var(--gds-opacity-disabled);
+  }
+
+  .label {
+    font-size: var(--_font-size);
+    font-weight: var(--gds-font-weight-medium);
+    line-height: var(--gds-font-line-height-normal);
+    color: var(--gds-text-primary);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .row:has(.control:disabled) .label {
+    cursor: not-allowed;
+    opacity: var(--gds-opacity-disabled);
+  }
+
+  .hint,
+  .error {
+    padding-inline-start: calc(var(--_box) + var(--_gap));
+    font-size: var(--gds-font-size-xs);
+    line-height: var(--gds-font-line-height-normal);
+  }
+
+  .hint {
+    color: var(--gds-text-secondary);
+  }
+
+  .error {
+    font-weight: var(--gds-font-weight-medium);
+    color: var(--gds-danger);
+  }
+
+  @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    .control {
+      --_bg: var(--gds-surface-solid-strong);
+    }
+  }
+
+  /* No squeeze, no draw: the tick and dash simply fade in. */
+  @media (prefers-reduced-motion: reduce) {
+    .control:active:not(:disabled) {
+      transform: none;
+    }
+    .control::before,
+    .control:checked::before,
+    .control:indeterminate::before {
+      transition-property: opacity;
+      clip-path: none;
+      animation: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .control {
+      forced-color-adjust: none;
+      --_bg: Canvas;
+      --_border: CanvasText;
+      color: HighlightText;
+    }
+    .control:hover:not(:disabled) {
+      --_border: Highlight;
+    }
+    .control:checked,
+    .control:indeterminate,
+    .control:checked:hover:not(:disabled),
+    .control:indeterminate:hover:not(:disabled) {
+      --_bg: Highlight;
+      --_border: Highlight;
+    }
+    .control:disabled {
+      --_border: GrayText;
+      opacity: 1;
+    }
+    .control:disabled:checked,
+    .control:disabled:indeterminate {
+      --_bg: GrayText;
+    }
+  }
+}

@@ -1,0 +1,90 @@
+@layer gds.components {
+  /* Glass ring: the root is a glass disc; the photo/initials sit inset by --_ring. */
+  .root {
+    --_size: var(--gds-space-10);
+    --_ring: var(--gds-space-0_5);
+    --_font-size: var(--gds-font-size-sm);
+
+    position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    inline-size: var(--_size);
+    block-size: var(--_size);
+    padding: var(--_ring);
+    border-radius: var(--gds-radius-full);
+    vertical-align: middle;
+    font-family: var(--gds-font-family-sans);
+    user-select: none;
+  }
+
+  .root[data-size='sm'] { --_size: var(--gds-space-8); --_font-size: var(--gds-font-size-xs); }
+  .root[data-size='lg'] { --_size: var(--gds-space-12); --_font-size: var(--gds-font-size-md); }
+  .root[data-size='xl'] { --_size: var(--gds-space-16); --_ring: var(--gds-space-1); --_font-size: var(--gds-font-size-xl); }
+
+  /* Smaller blur and a highlight-only shadow: avatars are small and often stacked. */
+  .root[data-size] {
+    --_blur: var(--gds-blur-sm);
+    box-shadow: inset 0 1px 0 var(--gds-border-glass-highlight);
+  }
+
+  .content {
+    display: grid;
+    inline-size: 100%;
+    block-size: 100%;
+    overflow: hidden;
+    border-radius: var(--gds-radius-full);
+  }
+
+  .image,
+  .fallback {
+    grid-area: 1 / 1;
+    inline-size: 100%;
+    block-size: 100%;
+  }
+
+  .image {
+    z-index: 1;
+    object-fit: cover;
+  }
+
+  .fallback {
+    display: grid;
+    place-items: center;
+    background-color: var(--gds-accent-glass);
+    color: var(--gds-text-primary);
+    font-size: var(--_font-size);
+    font-weight: var(--gds-font-weight-semibold);
+    line-height: 1;
+  }
+
+  /* Hide the initials once the photo is there (they would show through transparent PNGs). */
+  .image[data-status='loaded'] ~ .fallback {
+    visibility: hidden;
+  }
+
+  /* AvatarGroup: overlapping stack. Later avatars sit on top of earlier ones. */
+  .group {
+    --_overlap: var(--gds-space-3);
+
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .group[data-size='sm'] { --_overlap: var(--gds-space-2); }
+  .group[data-size='lg'] { --_overlap: var(--gds-space-4); }
+  .group[data-size='xl'] { --_overlap: var(--gds-space-5); }
+
+  .group > * + * {
+    margin-inline-start: calc(var(--_overlap) * -1);
+  }
+
+  .overflow .fallback {
+    background-color: transparent;
+    color: var(--gds-text-secondary);
+  }
+
+  @media (forced-colors: active) {
+    .fallback { background-color: Canvas; color: CanvasText; }
+  }
+}

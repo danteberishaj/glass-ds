@@ -1,0 +1,70 @@
+@layer gds.components {
+  /* Position, size and slide direction. Behaviour, backdrop and panel layout come from Dialog.module.css. */
+  .drawer[data-side] {
+    --_size: calc(var(--gds-space-16) * 6);
+    /*
+     * Gentle spring: it has no overshoot. A bouncy/snappy spring would push the panel past its edge
+     * and open a gap between it and the viewport side.
+     */
+    --_enter-duration: var(--gds-duration-spring-gentle);
+    --_enter-easing: var(--gds-easing-spring-gentle);
+    --_exit-duration: var(--gds-duration-normal);
+
+    position: fixed;
+    inset: auto;
+    margin: 0;
+    box-shadow: var(--gds-shadow-glass-raised);
+    border-radius: var(--gds-radius-none);
+  }
+
+  .drawer[data-size='sm'] { --_size: calc(var(--gds-space-16) * 5); }
+  .drawer[data-size='lg'] { --_size: calc(var(--gds-space-16) * 8); }
+
+  .drawer[data-side='left'],
+  .drawer[data-side='right'] {
+    inset-block: 0;
+    inline-size: min(var(--_size), 100%);
+    block-size: 100%;
+  }
+
+  .drawer[data-side='top'],
+  .drawer[data-side='bottom'] {
+    inset-inline: 0;
+    inline-size: 100%;
+    block-size: min(var(--_size), 100%);
+  }
+
+  /* Physical sides on purpose: `side="left"` means left in RTL too. The inner edge is rounded. */
+  .drawer[data-side='left'] {
+    --_closed-transform: translateX(-100%);
+    left: 0;
+    border-left-width: 0;
+    border-top-right-radius: var(--gds-radius-xl);
+    border-bottom-right-radius: var(--gds-radius-xl);
+  }
+
+  .drawer[data-side='right'] {
+    --_closed-transform: translateX(100%);
+    right: 0;
+    border-right-width: 0;
+    border-top-left-radius: var(--gds-radius-xl);
+    border-bottom-left-radius: var(--gds-radius-xl);
+  }
+
+  .drawer[data-side='top'] {
+    --_closed-transform: translateY(-100%);
+    top: 0;
+    border-top-width: 0;
+    border-bottom-left-radius: var(--gds-radius-xl);
+    border-bottom-right-radius: var(--gds-radius-xl);
+  }
+
+  .drawer[data-side='bottom'] {
+    --_closed-transform: translateY(100%);
+    bottom: 0;
+    border-bottom-width: 0;
+    border-top-left-radius: var(--gds-radius-xl);
+    border-top-right-radius: var(--gds-radius-xl);
+    padding-block-end: env(safe-area-inset-bottom);
+  }
+}

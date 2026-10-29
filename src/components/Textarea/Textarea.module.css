@@ -1,0 +1,78 @@
+@layer gds.components {
+  .root {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gds-space-2);
+    font-family: var(--gds-font-family-sans);
+  }
+
+  .label {
+    font-size: var(--gds-font-size-sm);
+    font-weight: var(--gds-font-weight-medium);
+    color: var(--gds-text-primary);
+  }
+
+  .input {
+    box-sizing: border-box;
+    min-height: var(--gds-control-height-md);
+    padding-block: var(--gds-space-2);
+    padding-inline: var(--gds-space-3);
+    border-radius: var(--gds-radius-md);
+    font: inherit;
+    font-size: var(--gds-font-size-sm);
+    line-height: var(--gds-font-line-height-normal);
+    resize: vertical;
+  }
+
+  .input[data-resize='none'] { resize: none; }
+  .input[data-resize='both'] { resize: both; }
+
+  .input::placeholder {
+    color: var(--gds-text-secondary);
+  }
+
+  /*
+   * The focus ring grows out of the edge (width and offset from 0) instead of popping in. Outline is
+   * paint-only (no layout), so this is cheap. Width 0 rather than a transparent colour: forced-colors
+   * mode would repaint a transparent outline as visible on every unfocused field.
+   */
+  .input {
+    outline: 0 solid var(--gds-focus-ring);
+    outline-offset: 0;
+    transition-property: outline-width, outline-offset;
+    transition-duration: var(--gds-duration-fast);
+    transition-timing-function: var(--gds-easing-out);
+  }
+
+  .input:focus-visible {
+    outline-width: 2px;
+    outline-offset: 2px;
+  }
+
+  .input[aria-invalid='true'] {
+    border-color: var(--gds-danger);
+  }
+
+  .input:disabled {
+    cursor: not-allowed;
+    opacity: var(--gds-opacity-disabled);
+    resize: none;
+  }
+
+  .hint {
+    font-size: var(--gds-font-size-xs);
+    color: var(--gds-text-secondary);
+  }
+
+  .error {
+    font-size: var(--gds-font-size-xs);
+    font-weight: var(--gds-font-weight-medium);
+    color: var(--gds-danger);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .input {
+      transition: none;
+    }
+  }
+}

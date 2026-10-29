@@ -1,0 +1,251 @@
+@layer gds.components {
+  .root {
+    --_cell: var(--gds-control-height-md);
+    --_slide: var(--gds-space-6);
+    /* Outside-month days: readable but recessive. No opacity token fits yet (proposed: opacity-subdued). */
+    --_outside-opacity: var(--gds-opacity-subdued);
+
+    display: inline-flex;
+    flex-direction: column;
+    gap: var(--gds-space-2);
+    inline-size: max-content;
+    font-family: var(--gds-font-family-sans);
+    color: var(--gds-text-primary);
+  }
+
+  .root[data-surface='glass'] {
+    padding: var(--gds-space-3);
+    border-radius: var(--gds-radius-lg);
+  }
+
+  /* ---- Header -------------------------------------------------------------- */
+
+  .header {
+    display: flex;
+    align-items: center;
+    gap: var(--gds-space-2);
+  }
+
+  .heading {
+    flex: 1;
+    text-align: center;
+    font-size: var(--gds-font-size-sm);
+    font-weight: var(--gds-font-weight-semibold);
+    line-height: var(--gds-font-line-height-tight);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  /* [data-size] lifts these over Button's own size rules (same specificity otherwise). */
+  .nav[data-size] {
+    inline-size: var(--gds-control-height-sm);
+    padding-inline: 0;
+    border-radius: var(--gds-radius-full);
+    color: var(--gds-text-secondary);
+  }
+
+  .nav[data-size]:hover:not([aria-disabled='true']) {
+    color: var(--gds-text-primary);
+  }
+
+  /* :is(...) out-ranks Button's ghost :hover/:active rules. */
+  .nav[data-size][aria-disabled='true'],
+  .nav[data-size][aria-disabled='true']:is(:hover, :active) {
+    cursor: not-allowed;
+    opacity: var(--gds-opacity-disabled);
+    background-color: transparent;
+    transform: none;
+  }
+
+  .chevron {
+    inline-size: var(--gds-space-4);
+    block-size: var(--gds-space-4);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .chevron:dir(rtl) {
+    transform: scaleX(-1);
+  }
+
+  /* ---- Grid ---------------------------------------------------------------- */
+
+  .grid {
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;
+    /* Clips the month slide to the grid while leaving room for focus rings on edge days. */
+    clip-path: inset(calc(var(--gds-space-1) * -1));
+  }
+
+  .weekday {
+    inline-size: var(--_cell);
+    block-size: var(--gds-control-height-sm);
+    padding: 0;
+    font-size: var(--gds-font-size-xs);
+    font-weight: var(--gds-font-weight-medium);
+    color: var(--gds-text-secondary);
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  .cell {
+    padding: 0;
+    block-size: var(--_cell);
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  .day {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: var(--_cell);
+    block-size: var(--_cell);
+    margin: 0;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: var(--gds-radius-full);
+    background-color: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: var(--gds-font-size-sm);
+    font-weight: var(--gds-font-weight-medium);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      background-color var(--gds-duration-fast) var(--gds-easing-standard),
+      color var(--gds-duration-fast) var(--gds-easing-standard),
+      transform var(--gds-duration-fast) var(--gds-easing-standard);
+  }
+
+  .day:hover:not([aria-disabled='true']) {
+    background-color: var(--gds-surface-selected);
+  }
+
+  .day:active:not([aria-disabled='true']) {
+    transform: scale(0.92);
+  }
+
+  .day:focus-visible {
+    z-index: 1;
+    outline: 2px solid var(--gds-focus-ring);
+    outline-offset: 2px;
+  }
+
+  .day[data-outside] {
+    color: var(--gds-text-secondary);
+    font-weight: var(--gds-font-weight-regular);
+    opacity: var(--_outside-opacity);
+  }
+
+  .day[data-today] {
+    border-color: var(--gds-accent);
+    font-weight: var(--gds-font-weight-semibold);
+  }
+
+  .day[aria-disabled='true'] {
+    cursor: not-allowed;
+    opacity: var(--gds-opacity-disabled);
+    text-decoration: line-through;
+  }
+
+  /* Selected: opaque accent pill, like Button solid, so contrast is guaranteed on any backdrop. */
+  .cell[aria-selected='true'] > .day {
+    background-color: var(--gds-accent);
+    border-color: transparent;
+    color: var(--gds-text-on-accent);
+    font-weight: var(--gds-font-weight-semibold);
+    opacity: 1;
+  }
+
+  .cell[aria-selected='true'] > .day:hover {
+    background-color: var(--gds-accent-hover);
+  }
+
+  /* Today and selected: keep a ring outside the pill so "today" stays visible. */
+  .cell[aria-selected='true'] > .day[data-today] {
+    box-shadow: 0 0 0 2px var(--gds-surface-solid-strong), 0 0 0 3px var(--gds-accent);
+  }
+
+  /* ---- Motion -------------------------------------------------------------- */
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(var(--_slide-from));
+    }
+  }
+
+  @keyframes pop {
+    from {
+      transform: scale(0.85);
+    }
+  }
+
+  .body[data-direction='next'] { --_slide-from: var(--_slide); }
+  .body[data-direction='prev'] { --_slide-from: calc(var(--_slide) * -1); }
+  .body[data-direction='next']:dir(rtl) { --_slide-from: calc(var(--_slide) * -1); }
+  .body[data-direction='prev']:dir(rtl) { --_slide-from: var(--_slide); }
+
+  .body[data-direction='next'],
+  .body[data-direction='prev'] {
+    animation: slideIn var(--gds-duration-spring-snappy) var(--gds-easing-spring-snappy);
+  }
+
+  .cell[aria-selected='true'] > .day[data-pop] {
+    animation: pop var(--gds-duration-spring-bounce) var(--gds-easing-spring-bounce);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .day {
+      transition: none;
+    }
+    .day:active:not([aria-disabled='true']) {
+      transform: none;
+    }
+    .body[data-direction],
+    .cell[aria-selected='true'] > .day[data-pop] {
+      animation: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    /* Transparent borders turn visible in forced colours; paint them as the canvas instead. */
+    .day {
+      border-color: Canvas;
+    }
+    .day:hover:not([aria-disabled='true']) {
+      border-color: Highlight;
+    }
+    .day[data-today] {
+      border-color: CanvasText;
+    }
+    .day[aria-disabled='true'] {
+      color: GrayText;
+      opacity: 1;
+    }
+    .cell[aria-selected='true'] > .day {
+      forced-color-adjust: none;
+      background-color: Highlight;
+      border-color: Highlight;
+      color: HighlightText;
+    }
+    .cell[aria-selected='true'] > .day[data-today] {
+      box-shadow: none;
+      outline: 2px solid CanvasText;
+      outline-offset: 1px;
+    }
+    .nav[data-size][aria-disabled='true'] {
+      color: GrayText;
+      opacity: 1;
+    }
+  }
+}

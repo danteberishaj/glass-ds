@@ -1,0 +1,212 @@
+@layer gds.components {
+  /*
+   * Shared by Dialog and Drawer (applied by DialogRoot). Variants set position/size,
+   * `--_closed-transform` (where the panel animates from/to) and the enter/exit timing with a
+   * [data-*] selector so they win over this base and over `.gds-glass`.
+   *
+   * Enter = a spring on transform (+ eased fade); exit = shorter, easing-out, no spring.
+   * [open] only swaps the --_t-* variables, so the reduced-motion `transition: none` below
+   * still wins (a state selector setting transition longhands would out-specify it).
+   */
+  .root {
+    --_closed-transform: none;
+    --_enter-duration: var(--gds-duration-spring-snappy);
+    --_enter-easing: var(--gds-easing-spring-snappy);
+    --_exit-duration: var(--gds-duration-fast);
+    --_t-duration: var(--_exit-duration);
+    --_t-fade-duration: var(--_exit-duration);
+    --_t-easing: var(--gds-easing-out);
+
+    box-sizing: border-box;
+    padding: 0;
+    max-inline-size: none;
+    max-block-size: none;
+    overflow: hidden; /* radius and blur on the same element (see GOTCHA); the body scrolls */
+    z-index: var(--gds-z-index-modal); /* only matters for modal={false}; modal is in the top layer */
+    font-family: var(--gds-font-family-sans);
+    color: var(--gds-text-primary);
+    opacity: 0;
+    transform: var(--_closed-transform);
+    /* display/overlay flip at the end of the exit (and at the start of the enter). */
+    transition-property: opacity, transform, display, overlay;
+    transition-duration: var(--_t-fade-duration), var(--_t-duration), var(--_t-duration), var(--_t-duration);
+    /* If linear() is unsupported this list computes to `ease`; the transition still runs. */
+    transition-timing-function: var(--gds-easing-out), var(--_t-easing), linear, linear;
+    /* Separate longhand: browsers without allow-discrete drop only this line, not the transition. */
+    transition-behavior: allow-discrete;
+  }
+
+  .root[open] {
+    --_t-duration: var(--_enter-duration);
+    --_t-fade-duration: var(--gds-duration-normal);
+    --_t-easing: var(--_enter-easing);
+
+    display: flex;
+    flex-direction: column;
+    opacity: 1;
+    transform: none;
+  }
+
+  @starting-style {
+    .root[open] {
+      opacity: 0;
+      transform: var(--_closed-transform);
+    }
+  }
+
+  /*
+   * ::backdrop can't take a class, so it is the one place a module writes backdrop-filter.
+   * Fallbacks mirror glass.css.
+   */
+  .root::backdrop {
+    background-color: var(--gds-surface-scrim);
+    -webkit-backdrop-filter: blur(var(--gds-blur-sm));
+    backdrop-filter: blur(var(--gds-blur-sm));
+    opacity: 0;
+    transition-property: opacity, display, overlay;
+    transition-duration: var(--_t-fade-duration), var(--_t-duration), var(--_t-duration);
+    transition-timing-function: var(--gds-easing-out), linear, linear;
+    transition-behavior: allow-discrete;
+  }
+
+  .root[open]::backdrop {
+    opacity: 1;
+  }
+
+  @starting-style {
+    .root[open]::backdrop {
+      opacity: 0;
+    }
+  }
+
+  /* Lock page scroll while a modal is open. The gutter stays, so the page doesn't shift sideways. */
+  :global(html):has(.root[open]:modal) {
+    overflow: hidden;
+    scrollbar-gutter: stable;
+  }
+
+  .panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    gap: var(--gds-space-4);
+    min-block-size: 0;
+    padding: var(--gds-space-6);
+  }
+
+  .header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gds-space-1);
+    padding-inline-end: var(--gds-space-8); /* room for the corner close button */
+  }
+
+  .title {
+    margin: 0;
+    font-size: var(--gds-font-size-lg);
+    font-weight: var(--gds-font-weight-semibold);
+    line-height: var(--gds-font-line-height-tight);
+    color: var(--gds-text-primary);
+  }
+
+  .description {
+    margin: 0;
+    font-size: var(--gds-font-size-sm);
+    line-height: var(--gds-font-line-height-normal);
+    color: var(--gds-text-secondary);
+  }
+
+  .body {
+    flex: 1 1 auto;
+    min-block-size: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    /* Breathing room so focus rings of fields inside aren't clipped by the scroll container. */
+    margin: calc(var(--gds-space-1) * -1);
+    padding: var(--gds-space-1);
+    font-size: var(--gds-font-size-sm);
+    line-height: var(--gds-font-line-height-normal);
+  }
+
+  .footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--gds-space-2);
+  }
+
+  /* Icon-only DialogClose, pinned to the corner. [data-icon] lifts it over Button's own rules. */
+  .closeIcon[data-icon] {
+    position: absolute;
+    inset-block-start: var(--gds-space-3);
+    inset-inline-end: var(--gds-space-3);
+    inline-size: var(--gds-space-8);
+    min-block-size: var(--gds-space-8);
+    padding-inline: 0;
+    color: var(--gds-text-secondary);
+  }
+
+  .closeIcon[data-icon]:hover:not(:disabled) {
+    color: var(--gds-text-primary);
+  }
+
+  .closeGlyph {
+    inline-size: var(--gds-space-4);
+    block-size: var(--gds-space-4);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+
+  /* Dialog: centred panel. */
+  .dialog[data-size] {
+    --_width: calc(var(--gds-space-16) * 8);
+    --_closed-transform: translateY(var(--gds-space-2)) scale(0.96);
+
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    inline-size: min(var(--_width), 100% - var(--gds-space-4) * 2);
+    block-size: fit-content;
+    max-block-size: calc(100% - var(--gds-space-8) * 2);
+    border-radius: var(--gds-radius-xl);
+    box-shadow: var(--gds-shadow-glass-raised);
+  }
+
+  .dialog[data-size='sm'] { --_width: calc(var(--gds-space-16) * 6); }
+  .dialog[data-size='lg'] { --_width: calc(var(--gds-space-16) * 12); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .root,
+    .root::backdrop {
+      transition: none;
+    }
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .root::backdrop {
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+
+  @media (prefers-contrast: more) {
+    .root::backdrop {
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .root::backdrop {
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+    .closeIcon[data-icon] {
+      color: ButtonText;
+    }
+  }
+}

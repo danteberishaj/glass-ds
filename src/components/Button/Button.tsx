@@ -1,6 +1,6 @@
 import type { ComponentPropsWithRef } from 'react';
 import { cx } from '../../utils/cx';
-import { GLASS_CLASS } from '../../utils/glass';
+import { GLASS_CLASS, GLASS_SHEEN_CLASS } from '../../utils/glass';
 import styles from './Button.module.css';
 
 export type ButtonVariant = 'glass' | 'solid' | 'ghost';
@@ -21,7 +21,7 @@ export function Button({ variant = 'glass', size = 'md', type = 'button', classN
       type={type}
       data-variant={variant}
       data-size={size}
-      className={cx(variant === 'glass' && GLASS_CLASS, styles.root, styles[variant], className)}
+      className={cx(variant === 'glass' && [GLASS_CLASS, GLASS_SHEEN_CLASS], styles.root, styles[variant], className)}
       {...rest}
     />
   );

@@ -1,0 +1,75 @@
+@layer gds.components {
+  /*
+   * Not a glass surface on purpose: skeletons come in dozens, and each backdrop-filter is a
+   * compositing layer. The translucent track tint reads as glass on any surface.
+   * The shimmer animates `transform` only.
+   */
+  .root {
+    --_width: 100%;
+    --_height: calc(1em * var(--gds-font-line-height-normal));
+    --_radius: var(--gds-radius-md);
+    /* No token for loop durations yet: derived from the slowest duration token. */
+    --_duration: var(--gds-duration-loop);
+
+    position: relative;
+    display: block;
+    box-sizing: border-box;
+    inline-size: var(--_width);
+    max-inline-size: 100%;
+    block-size: var(--_height);
+    overflow: hidden;
+    border-radius: var(--_radius);
+    background-color: var(--gds-surface-track);
+    box-shadow: inset 0 1px 0 var(--gds-border-subtle);
+  }
+
+  .root[data-radius='none'] { --_radius: var(--gds-radius-none); }
+  .root[data-radius='sm'] { --_radius: var(--gds-radius-sm); }
+  .root[data-radius='lg'] { --_radius: var(--gds-radius-lg); }
+  .root[data-radius='xl'] { --_radius: var(--gds-radius-xl); }
+  .root[data-radius='full'] { --_radius: var(--gds-radius-full); }
+
+  /*
+   * Shimmer: a soft highlight band half the skeleton's width sweeps across with an eased
+   * (fast-in, slow-out) motion, then rests, so it reads as light passing over glass rather than a
+   * conveyor belt. Physical `left` + transform; RTL simply plays it in reverse.
+   */
+  .root::after {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    left: 0;
+    inline-size: 50%;
+    background-image: linear-gradient(90deg, transparent, var(--gds-border-glass) 50%, transparent);
+    transform: translateX(-100%);
+    animation: shimmer var(--_duration) var(--gds-easing-standard) infinite;
+  }
+
+  .root:dir(rtl)::after {
+    animation-direction: reverse;
+  }
+
+  /* 0 → 65%: sweep from fully left of the box to fully right (200% of a half-width band); then rest. */
+  @keyframes shimmer {
+    65%,
+    100% {
+      transform: translateX(200%);
+    }
+  }
+
+  @keyframes pulse {
+    from { opacity: 1; }
+    to { opacity: var(--gds-opacity-disabled); }
+  }
+
+  /* No sweep: the placeholder breathes slowly instead, so it still reads as "loading". */
+  @media (prefers-reduced-motion: reduce) {
+    .root { animation: pulse var(--gds-duration-pulse) var(--gds-easing-in-out) infinite alternate; }
+    .root::after { display: none; }
+  }
+
+  @media (forced-colors: active) {
+    .root { border: 1px solid GrayText; }
+    .root::after { display: none; }
+  }
+}

@@ -1,0 +1,158 @@
+@layer gds.components {
+  .root {
+    --_size: var(--gds-control-height-md);
+    --_font-size: var(--gds-font-size-sm);
+
+    font-family: var(--gds-font-family-sans);
+  }
+
+  .root[data-size='sm'] {
+    --_size: var(--gds-control-height-sm);
+    --_font-size: var(--gds-font-size-xs);
+  }
+
+  .list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--gds-space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .list > li {
+    display: flex;
+  }
+
+  /* Pill controls (page numbers, previous, next): square at minimum, grow for long numbers. */
+  .control {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-width: var(--_size);
+    height: var(--_size);
+    padding-inline: var(--gds-space-2);
+    border-radius: var(--gds-radius-full);
+    font-family: inherit;
+    font-size: var(--_font-size);
+    font-weight: var(--gds-font-weight-medium);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    color: var(--gds-text-primary);
+    text-decoration: none;
+    cursor: pointer;
+    user-select: none;
+    /* Same press as Button: fast in, springy release. */
+    --_press-duration: var(--gds-duration-spring-bounce);
+    --_press-easing: var(--gds-easing-spring-bounce);
+
+    transition-property: background-color, transform;
+    transition-duration: var(--gds-duration-fast), var(--_press-duration);
+    transition-timing-function: var(--gds-easing-standard), var(--_press-easing);
+  }
+
+  .control:hover:not(:disabled, [aria-disabled='true'], [aria-current='page']) {
+    --_fill: var(--gds-surface-glass-strong);
+  }
+
+  .control:active:not(:disabled, [aria-disabled='true'], [aria-current='page']) {
+    --_press-duration: var(--gds-duration-fast);
+    --_press-easing: var(--gds-easing-out);
+    transform: scale(0.96);
+  }
+
+  .control:focus-visible {
+    outline: 2px solid var(--gds-focus-ring);
+    outline-offset: 2px;
+  }
+
+  .control:disabled,
+  .control[aria-disabled='true'] {
+    cursor: not-allowed;
+    opacity: var(--gds-opacity-disabled);
+  }
+
+  /* Current page: opaque accent, like the primary Button, so contrast is guaranteed. */
+  .control[aria-current='page'] {
+    border: 1px solid transparent;
+    background-color: var(--gds-accent);
+    color: var(--gds-text-on-accent);
+    font-weight: var(--gds-font-weight-semibold);
+    cursor: default;
+    /*
+     * Pops in whenever a control becomes the current page. A keyframe (not a transition) because the
+     * new current page usually wasn't pressed. Also plays once on first paint: accepted, it's subtle.
+     */
+    animation: currentIn var(--gds-duration-spring-bounce) var(--gds-easing-spring-bounce);
+  }
+
+  @keyframes currentIn {
+    from { transform: scale(0.9); }
+  }
+
+  .ellipsis {
+    align-items: center;
+    justify-content: center;
+    min-width: var(--_size);
+    height: var(--_size);
+    font-size: var(--_font-size);
+    color: var(--gds-text-secondary);
+    user-select: none;
+  }
+
+  /* Chevron drawn with two borders, sized from the font. */
+  .chevron {
+    display: block;
+    width: 0.5em;
+    height: 0.5em;
+    border-block-start: 0.125em solid currentColor;
+    border-inline-end: 0.125em solid currentColor;
+  }
+
+  .chevron[data-direction='next'] {
+    transform: translateX(-15%) rotate(45deg);
+  }
+
+  .chevron[data-direction='previous'] {
+    transform: translateX(15%) rotate(-135deg);
+  }
+
+  .chevron[data-direction='next']:dir(rtl) {
+    transform: translateX(15%) rotate(-45deg);
+  }
+
+  .chevron[data-direction='previous']:dir(rtl) {
+    transform: translateX(-15%) rotate(135deg);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .control {
+      transition: none;
+    }
+
+    .control:active:not(:disabled, [aria-disabled='true'], [aria-current='page']) {
+      transform: none;
+    }
+
+    .control[aria-current='page'] {
+      animation: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .control[aria-current='page'] {
+      forced-color-adjust: none;
+      background-color: Highlight;
+      color: HighlightText;
+      border-color: Highlight;
+    }
+
+    .control:disabled,
+    .control[aria-disabled='true'] {
+      color: GrayText;
+      opacity: 1;
+    }
+  }
+}

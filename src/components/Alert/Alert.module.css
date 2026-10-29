@@ -1,0 +1,87 @@
+@layer gds.components {
+  .root {
+    --_fg: var(--gds-text-primary);
+    --_tint: transparent;
+
+    display: flex;
+    align-items: flex-start;
+    gap: var(--gds-space-3);
+    box-sizing: border-box;
+    padding: var(--gds-space-4);
+    border-radius: var(--gds-radius-lg);
+    font-family: var(--gds-font-family-sans);
+    font-size: var(--gds-font-size-sm);
+    line-height: var(--gds-font-line-height-normal);
+    /* Enters on mount (and on the first paint after SSR): fades in while dropping 4px into place. */
+    transition-property: opacity, transform;
+    transition-duration: var(--gds-duration-normal), var(--gds-duration-spring-snappy);
+    transition-timing-function: var(--gds-easing-out), var(--gds-easing-spring-snappy);
+  }
+
+  @starting-style {
+    .root {
+      opacity: 0;
+      transform: translateY(calc(var(--gds-space-1) * -1));
+    }
+  }
+
+  .root[data-tone='info'] { --_fg: var(--gds-info); --_tint: var(--gds-info-glass); }
+  .root[data-tone='success'] { --_fg: var(--gds-success); --_tint: var(--gds-success-glass); }
+  .root[data-tone='warning'] { --_fg: var(--gds-warning); --_tint: var(--gds-warning-glass); }
+  .root[data-tone='danger'] { --_fg: var(--gds-danger-text); --_tint: var(--gds-danger-glass); }
+
+  /*
+   * Tint layered over the glass fill (or the opaque fallback) as a background-image, so it never
+   * replaces the base surface. Strong fill: alerts hold body text.
+   * [data-tone] is always present and out-specifies `.gds-glass`.
+   */
+  .root[data-tone] {
+    --_fill: var(--gds-surface-glass-strong);
+    background-image: linear-gradient(var(--_tint), var(--_tint));
+    box-shadow: inset 0 1px 0 var(--gds-border-glass-highlight);
+  }
+
+  .icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    /* Same height as one line of the title, so the icon centres on it. */
+    block-size: calc(1em * var(--gds-font-line-height-normal));
+    color: var(--_fg);
+  }
+
+  .icon > svg {
+    inline-size: var(--gds-space-4);
+    block-size: var(--gds-space-4);
+  }
+
+  .body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--gds-space-1);
+    min-inline-size: 0;
+  }
+
+  .title {
+    color: var(--_fg);
+    font-weight: var(--gds-font-weight-semibold);
+  }
+
+  .description {
+    color: var(--gds-text-primary);
+  }
+
+  .description > :first-child { margin-block-start: 0; }
+  .description > :last-child { margin-block-end: 0; }
+
+  /* Fade only. */
+  @media (prefers-reduced-motion: reduce) {
+    .root { transition-property: opacity; }
+  }
+
+  @media (forced-colors: active) {
+    .root[data-tone] { background-image: none; }
+  }
+}

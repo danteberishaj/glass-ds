@@ -7,6 +7,37 @@
     font-family: var(--gds-font-family-sans);
   }
 
+  /*
+   * interactive: lift on hover (and while something inside has keyboard focus), settle on press.
+   * Springy out, fast in, same pattern as Button. [data-interactive] out-specifies `.gds-glass`'s shadow.
+   */
+  .root[data-interactive] {
+    --_lift-duration: var(--gds-duration-spring-snappy);
+    --_lift-easing: var(--gds-easing-spring-snappy);
+
+    transition-property: transform, box-shadow;
+    transition-duration: var(--_lift-duration), var(--gds-duration-slow);
+    transition-timing-function: var(--_lift-easing), var(--gds-easing-out);
+  }
+
+  .root[data-interactive]:is(:hover, :focus-visible, :has(:focus-visible)) {
+    box-shadow: var(--gds-shadow-glass-raised);
+    transform: translateY(calc(var(--gds-space-0_5) * -1));
+  }
+
+  .root[data-interactive]:active {
+    --_lift-duration: var(--gds-duration-fast);
+    --_lift-easing: var(--gds-easing-out);
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .root[data-interactive]:is(:hover, :focus-visible, :has(:focus-visible)),
+    .root[data-interactive]:active {
+      transform: none;
+    }
+  }
+
   .header {
     display: flex;
     flex-direction: column;

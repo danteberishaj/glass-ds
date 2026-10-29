@@ -1,0 +1,26 @@
+@layer gds.components {
+  /* Drawn with a border, not a background, so forced-colors mode keeps it visible. */
+  .root {
+    flex-shrink: 0;
+    box-sizing: border-box;
+    margin: 0;
+    border: 0 solid var(--gds-border-subtle);
+  }
+
+  .root[data-orientation='horizontal'] {
+    inline-size: 100%;
+    block-size: 0;
+    border-block-start-width: 1px;
+  }
+
+  .root[data-orientation='vertical'] {
+    align-self: stretch;
+    inline-size: 0;
+    min-block-size: 1em;
+    border-inline-start-width: 1px;
+  }
+
+  @media (forced-colors: active) {
+    .root { border-color: CanvasText; }
+  }
+}

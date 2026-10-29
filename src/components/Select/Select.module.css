@@ -1,0 +1,138 @@
+@layer gds.components {
+  .root {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gds-space-2);
+    font-family: var(--gds-font-family-sans);
+  }
+
+  .label {
+    font-size: var(--gds-font-size-sm);
+    font-weight: var(--gds-font-weight-medium);
+    color: var(--gds-text-primary);
+  }
+
+  .field {
+    --_chevron-size: 16px;
+
+    position: relative;
+    display: flex;
+  }
+
+  /* Chevron: a mask painted with a token colour; the select itself keeps the glass background. */
+  .field::after {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: var(--gds-space-3);
+    inline-size: var(--_chevron-size);
+    margin-block: auto;
+    block-size: var(--_chevron-size);
+    background-color: var(--gds-text-secondary);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E") center / contain no-repeat;
+    pointer-events: none;
+  }
+
+  .field:has(.input:disabled)::after {
+    opacity: var(--gds-opacity-disabled);
+  }
+
+  .field:has(.input[multiple])::after,
+  .field:has(.input[size]:not([size='1']))::after {
+    display: none;
+  }
+
+  .input {
+    appearance: none;
+    flex: 1;
+    min-width: 0;
+    min-height: var(--gds-control-height-md);
+    margin: 0;
+    padding-inline: var(--gds-space-3) calc(var(--gds-space-3) * 2 + var(--_chevron-size));
+    border-radius: var(--gds-radius-md);
+    font: inherit;
+    font-size: var(--gds-font-size-sm);
+    cursor: pointer;
+  }
+
+  .input[multiple] {
+    padding-block: var(--gds-space-2);
+    padding-inline-end: var(--gds-space-3);
+  }
+
+  /* Placeholder option selected: read as a placeholder, like TextField's. */
+  .input:has(> option[data-placeholder]:checked) {
+    color: var(--gds-text-secondary);
+  }
+
+  /*
+   * The open list is drawn by the OS. `color-scheme` (set per theme in tokens.css) themes it on macOS;
+   * explicit option colours cover Windows/Linux, where options otherwise inherit the translucent glass
+   * fill and the select's text colour and become unreadable in dark mode.
+   */
+  .input option,
+  .input optgroup {
+    background-color: var(--gds-surface-solid-strong);
+    color: var(--gds-text-primary);
+  }
+
+  .input option:disabled {
+    color: var(--gds-text-secondary);
+  }
+
+  /*
+   * The focus ring grows out of the edge (width and offset from 0) instead of popping in. Outline is
+   * paint-only (no layout), so this is cheap. Width 0 rather than a transparent colour: forced-colors
+   * mode would repaint a transparent outline as visible on every unfocused field.
+   */
+  .input {
+    outline: 0 solid var(--gds-focus-ring);
+    outline-offset: 0;
+    transition-property: outline-width, outline-offset;
+    transition-duration: var(--gds-duration-fast);
+    transition-timing-function: var(--gds-easing-out);
+  }
+
+  .input:focus-visible {
+    outline-width: 2px;
+    outline-offset: 2px;
+  }
+
+  .input[aria-invalid='true'] {
+    border-color: var(--gds-danger);
+  }
+
+  .input:disabled {
+    cursor: not-allowed;
+    opacity: var(--gds-opacity-disabled);
+  }
+
+  .hint {
+    font-size: var(--gds-font-size-xs);
+    color: var(--gds-text-secondary);
+  }
+
+  .error {
+    font-size: var(--gds-font-size-xs);
+    font-weight: var(--gds-font-weight-medium);
+    color: var(--gds-danger);
+  }
+
+  @media (forced-colors: active) {
+    .field::after {
+      forced-color-adjust: none;
+      background-color: CanvasText;
+    }
+    .field:has(.input:disabled)::after {
+      background-color: GrayText;
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .input {
+      transition: none;
+    }
+  }
+}

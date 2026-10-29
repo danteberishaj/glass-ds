@@ -1,0 +1,84 @@
+@layer gds.components {
+  .root {
+    --_size: var(--gds-space-6);
+    --_stroke: var(--gds-space-0_5);
+    /* No token for loop durations yet: derived from the slow duration token (~800ms / ~1.9s). */
+    --_spin: var(--gds-duration-loop-fast);
+    --_pulse: var(--gds-duration-pulse);
+
+    position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+    inline-size: var(--_size);
+    block-size: var(--_size);
+    vertical-align: middle;
+    color: var(--gds-accent);
+  }
+
+  .root[data-size='sm'] { --_size: var(--gds-space-4); }
+  .root[data-size='lg'] { --_size: var(--gds-space-8); --_stroke: calc(var(--gds-space-1) * 0.75); }
+
+  .root[data-tone='neutral'] { color: var(--gds-text-secondary); }
+  .root[data-tone='current'] { color: inherit; }
+
+  /*
+   * Track + arc. The ring is the static track; ::after is the arc: a conic gradient (a comet that
+   * fades in toward its head) masked down to the stroke. Two rotations compose: the arc spins at a
+   * steady pace while the whole ring turns with ease-in-out, so the head surges and eases instead
+   * of ticking round mechanically. Transform-only.
+   */
+  .ring {
+    position: relative;
+    box-sizing: border-box;
+    inline-size: 100%;
+    block-size: 100%;
+    border: var(--_stroke) solid var(--gds-surface-track);
+    border-radius: var(--gds-radius-full);
+    animation: spin var(--_pulse) var(--gds-easing-in-out) infinite;
+  }
+
+  .ring::after {
+    /* Mask colour is irrelevant (only alpha counts): it cuts the disc down to a ring of --_stroke. */
+    --_ring-mask: radial-gradient(
+      farthest-side,
+      transparent calc(100% - var(--_stroke)),
+      #000 calc(100% - var(--_stroke) + 0.5px)
+    );
+
+    content: '';
+    position: absolute;
+    inset: calc(var(--_stroke) * -1);
+    border-radius: inherit;
+    background-image: conic-gradient(transparent 0turn, transparent 0.15turn, currentColor 0.85turn, transparent 0.85turn);
+    -webkit-mask: var(--_ring-mask);
+    mask: var(--_ring-mask);
+    animation: spin var(--_spin) linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(1turn); }
+  }
+
+  @keyframes pulse {
+    from { opacity: 1; }
+    to { opacity: var(--gds-opacity-muted); }
+  }
+
+  /* No rotation: the arc holds still and the ring pulses slowly, which still says "working". */
+  @media (prefers-reduced-motion: reduce) {
+    .ring {
+      animation: pulse var(--_pulse) var(--gds-easing-in-out) infinite alternate;
+    }
+    .ring::after {
+      animation: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .ring {
+      forced-color-adjust: none;
+      border-color: GrayText;
+      color: CanvasText;
+    }
+  }
+}

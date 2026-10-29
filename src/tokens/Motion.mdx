@@ -1,0 +1,56 @@
+import { Canvas, Meta } from '@storybook/addon-docs/blocks';
+import * as MotionStories from './Motion.stories';
+
+<Meta of={MotionStories} />
+
+# Motion
+
+Motion in glass-ds should feel like light and depth on a physical pane: quick, soft, and never in the way.
+Every value is a token in `src/tokens/tokens.ts`.
+
+<Canvas of={MotionStories.Easings} />
+
+## Which easing for what
+
+| Moment | Easing | Duration |
+| --- | --- | --- |
+| **Enter** (dialog, tab indicator, panel, chevron) | `--gds-easing-spring-snappy` | `--gds-duration-spring-snappy` |
+| **Exit** (dialog/drawer close, hover-out) | `--gds-easing-out` | `--gds-duration-fast` or `-normal` |
+| **Playful confirmation** (press release, switch thumb, radio dot, current page) | `--gds-easing-spring-bounce` | `--gds-duration-spring-bounce` |
+| **Large surfaces** (drawer, accordion height, progress fill) | `--gds-easing-spring-gentle` | `--gds-duration-spring-gentle` |
+| Colour, background, border | `--gds-easing-standard` | `--gds-duration-fast` |
+
+- A spring easing is always paired with its own duration token: the curve was sampled for that settle time.
+- **Fast in, springy out.** Press states (`:active`) switch to `easing-out` + `duration-fast`, so the press
+  answers at once; releasing runs the base spring, which settles with a small overshoot.
+- **No overshoot on edges or values.** Drawers and the progress bar use the gentle spring, which never passes
+  its target: an overshoot would open a gap at the viewport edge or show more progress than there is.
+- Exits are shorter than entrances. Nobody waits for something to leave.
+
+## What may animate
+
+- **Only `transform` and `opacity`** (and custom properties feeding them). They run on the compositor.
+- Exceptions, all small and isolated: the tab indicator's `width`/`height` (absolutely positioned), the
+  accordion's `block-size` (`::details-content` + `interpolate-size`), the checkbox tick's `clip-path`, and
+  focus rings (`outline-width`/`outline-offset`, paint only).
+- **Never `backdrop-filter` or a blur radius.** Fade or move the glass, never re-blur it.
+- Don't fade an ancestor of glass: `opacity < 1` makes it the backdrop root, so the glass inside loses its blur
+  until the fade ends. Tab panels that contain glass only rise, they don't fade.
+- Write `transition-*` longhands. In browsers without `linear()`, a spring token makes the timing list compute
+  to `ease` and the transition still runs; inside the `transition` shorthand it would cancel the whole transition.
+
+## Glass light
+
+`GLASS_SHEEN_CLASS` (or `data-sheen`) adds a specular highlight that sweeps across once on hover or keyboard
+focus. Button's glass variant and `<Card interactive>` use it. It takes the element's `::after` and sets
+`overflow: clip` (the element's own focus ring is not clipped).
+
+## Accessibility
+
+- `prefers-reduced-motion: reduce`: nothing moves. Presses, lifts, slides and springs become instant; fades and
+  colour changes may stay. Loops (spinner, progress, skeleton) become a slow opacity pulse.
+- `forced-colors`, `prefers-contrast: more` and `prefers-reduced-transparency`: the sheen and other decorative
+  light are removed.
+- Motion never carries meaning on its own: state is always in the DOM (`aria-selected`, `checked`, `open`).
+
+<Canvas of={MotionStories.InContext} />

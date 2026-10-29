@@ -1,0 +1,143 @@
+@layer gds.components {
+  /* Glass container: radius, blur and overflow on the same element (see GOTCHA, Safari corners). */
+  .container {
+    position: relative;
+    max-width: 100%;
+    overflow: auto;
+    border-radius: var(--gds-radius-lg);
+    font-family: var(--gds-font-family-sans);
+  }
+
+  /* Focusable when the consumer passes tabIndex={0} (keyboard scrolling of a wide table). */
+  .container:focus-visible {
+    outline: 2px solid var(--gds-focus-ring);
+    outline-offset: 2px;
+  }
+
+  .table {
+    --_cell-py: var(--gds-space-3);
+    --_cell-px: var(--gds-space-4);
+    --_edge-px: var(--gds-space-5);
+
+    width: 100%;
+    /* `separate` (not `collapse`) so sticky header cells keep their bottom border. */
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: var(--gds-font-size-sm);
+    line-height: var(--gds-font-line-height-normal);
+    color: var(--gds-text-primary);
+  }
+
+  .table[data-density='compact'] {
+    --_cell-py: var(--gds-space-2);
+    --_cell-px: var(--gds-space-3);
+    --_edge-px: var(--gds-space-4);
+  }
+
+  .caption {
+    caption-side: bottom;
+    padding: var(--gds-space-3) var(--_edge-px);
+    border-top: 1px solid var(--gds-border-subtle);
+    font-size: var(--gds-font-size-xs);
+    color: var(--gds-text-secondary);
+    text-align: start;
+  }
+
+  .head,
+  .cell {
+    padding: var(--_cell-py) var(--_cell-px);
+    text-align: start;
+    vertical-align: middle;
+  }
+
+  .head:first-child,
+  .cell:first-child {
+    padding-inline-start: var(--_edge-px);
+  }
+
+  .head:last-child,
+  .cell:last-child {
+    padding-inline-end: var(--_edge-px);
+  }
+
+  .head {
+    font-size: var(--gds-font-size-xs);
+    font-weight: var(--gds-font-weight-semibold);
+    color: var(--gds-text-secondary);
+    white-space: nowrap;
+  }
+
+  /* Row headers (`scope="row"` in the body) read as body text, just emphasised. */
+  .body .head {
+    font-size: inherit;
+    color: var(--gds-text-primary);
+  }
+
+  .head[data-align='center'],
+  .cell[data-align='center'] {
+    text-align: center;
+  }
+
+  .head[data-align='end'],
+  .cell[data-align='end'] {
+    text-align: end;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Dividers */
+  .header > .row > * {
+    border-bottom: 1px solid var(--gds-border-subtle);
+  }
+
+  .body > .row + .row > * {
+    border-top: 1px solid var(--gds-border-subtle);
+  }
+
+  .footer > .row > * {
+    border-top: 1px solid var(--gds-border-subtle);
+    font-weight: var(--gds-font-weight-semibold);
+  }
+
+  /* Child combinators keep these from leaking into a nested table. */
+  .body > .row {
+    transition: background-color var(--gds-duration-fast) var(--gds-easing-standard);
+  }
+
+  .table[data-striped] > .body > .row:nth-child(even) {
+    background-color: var(--gds-surface-stripe);
+  }
+
+  .table[data-hoverable] > .body > .row:hover {
+    background-color: var(--gds-accent-glass);
+  }
+
+  .table > .body > .row[data-state='selected'] {
+    background-color: var(--gds-accent-glass);
+  }
+
+  /* Sticky header: an opaque fill, because rows scroll underneath it (no glass-in-glass). */
+  .table[data-sticky-header] > .header > .row > .head {
+    position: sticky;
+    top: 0;
+    z-index: var(--gds-z-index-raised);
+    background-color: var(--gds-surface-solid);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .body > .row {
+      transition: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .table > .body > .row[data-state='selected'] {
+      forced-color-adjust: none;
+      background-color: Highlight;
+      color: HighlightText;
+    }
+
+    .table[data-sticky-header] > .header > .row > .head {
+      background-color: Canvas;
+    }
+  }
+}

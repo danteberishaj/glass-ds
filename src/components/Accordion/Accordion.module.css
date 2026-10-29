@@ -1,0 +1,137 @@
+@layer gds.components {
+  .root {
+    display: flex;
+    flex-direction: column;
+    padding: var(--gds-space-2);
+    font-family: var(--gds-font-family-sans);
+    /* Lets ::details-content transition to `block-size: auto` (inherited by the items). */
+    interpolate-size: allow-keywords;
+  }
+
+  .item + .item {
+    border-block-start: 1px solid var(--gds-border-subtle);
+  }
+
+  .trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--gds-space-3);
+    padding: var(--gds-space-3) var(--gds-space-4);
+    border-radius: var(--gds-radius-md);
+    font-size: var(--gds-font-size-sm);
+    font-weight: var(--gds-font-weight-semibold);
+    line-height: var(--gds-font-line-height-tight);
+    color: var(--gds-text-primary);
+    cursor: pointer;
+    user-select: none;
+    list-style: none; /* hides the native marker (Firefox, Chrome) */
+    transition: background-color var(--gds-duration-fast) var(--gds-easing-standard);
+  }
+
+  /* hides the native marker (Safari) */
+  .trigger::-webkit-details-marker {
+    display: none;
+  }
+
+  .trigger:hover {
+    background-color: var(--gds-accent-glass);
+  }
+
+  .trigger:focus-visible {
+    outline: 2px solid var(--gds-focus-ring);
+    outline-offset: 2px;
+  }
+
+  .label {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+  }
+
+  /*
+   * A CSS chevron: two borders of a small square, rotated. Points down when closed, up when open.
+   * The optical nudge (half a space-1 up when pointing down, down when pointing up) is part of the
+   * transform, so it animates with the rotation instead of jumping. Snappy spring: a slight overshoot.
+   */
+  .chevron {
+    flex: none;
+    inline-size: var(--gds-space-2);
+    block-size: var(--gds-space-2);
+    border-inline-end: 2px solid currentColor;
+    border-block-end: 2px solid currentColor;
+    color: var(--gds-text-secondary);
+    transform: translateY(calc(var(--gds-space-1) / -2)) rotate(45deg);
+    transition-property: transform;
+    transition-duration: var(--gds-duration-spring-snappy);
+    transition-timing-function: var(--gds-easing-spring-snappy);
+  }
+
+  .item[open] > .trigger .chevron {
+    transform: translateY(calc(var(--gds-space-1) / 2)) rotate(225deg);
+  }
+
+  .content {
+    padding: var(--gds-space-1) var(--gds-space-4) var(--gds-space-4);
+    font-size: var(--gds-font-size-sm);
+    line-height: var(--gds-font-line-height-normal);
+    color: var(--gds-text-primary);
+  }
+
+  /* Opening: the content settles 4px down into place while it fades in (closing just collapses). */
+  .item[open] > .content {
+    animation: contentIn var(--gds-duration-slow) var(--gds-easing-out) both;
+  }
+
+  @keyframes contentIn {
+    from {
+      opacity: 0;
+      transform: translateY(calc(var(--gds-space-1) * -1));
+    }
+  }
+
+  /*
+   * Progressive enhancement: animate the panel's height where ::details-content exists.
+   * Without interpolate-size (e.g. Safari) the height snaps but opacity still fades.
+   * Open with the gentle spring (no overshoot: a height bounce would shove the page); close faster.
+   */
+  @supports selector(::details-content) {
+    .item::details-content {
+      block-size: 0;
+      overflow-y: clip;
+      opacity: 0;
+      transition-property: block-size, opacity, content-visibility;
+      transition-duration: var(--gds-duration-normal);
+      transition-timing-function: var(--gds-easing-out);
+      transition-behavior: allow-discrete;
+    }
+
+    .item[open]::details-content {
+      block-size: auto;
+      opacity: 1;
+      transition-duration: var(--gds-duration-spring-gentle), var(--gds-duration-normal), var(--gds-duration-spring-gentle);
+      transition-timing-function: var(--gds-easing-spring-gentle), var(--gds-easing-out), linear;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .trigger,
+    .chevron,
+    .item::details-content,
+    .item[open]::details-content {
+      transition: none;
+    }
+
+    .item[open] > .content {
+      animation: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .chevron {
+      color: CanvasText;
+    }
+    .item + .item {
+      border-block-start-color: CanvasText;
+    }
+  }
+}

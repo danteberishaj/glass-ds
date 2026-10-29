@@ -1,0 +1,169 @@
+@layer gds.components {
+  .root {
+    --_progress: 0;
+    --_height: var(--gds-space-2);
+    --_color: var(--gds-accent);
+    --_dir: 1;
+    /* No token for loop durations yet: derived from the slow duration token (~1.6s / ~1.9s). */
+    --_loop: var(--gds-duration-loop);
+    --_pulse: var(--gds-duration-pulse);
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--gds-space-2);
+    inline-size: 100%;
+    font-family: var(--gds-font-family-sans);
+    font-size: var(--gds-font-size-sm);
+    line-height: var(--gds-font-line-height-tight);
+  }
+
+  .root:dir(rtl) { --_dir: -1; }
+
+  .root[data-size='sm'] { --_height: var(--gds-space-1); }
+  .root[data-size='lg'] { --_height: var(--gds-space-3); }
+
+  .root[data-tone='success'] { --_color: var(--gds-success); }
+  .root[data-tone='warning'] { --_color: var(--gds-warning); }
+  .root[data-tone='danger'] { --_color: var(--gds-danger); }
+  .root[data-tone='info'] { --_color: var(--gds-info); }
+
+  .header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--gds-space-3);
+  }
+
+  .label {
+    font-weight: var(--gds-font-weight-medium);
+    color: var(--gds-text-primary);
+  }
+
+  .value {
+    margin-inline-start: auto;
+    color: var(--gds-text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Recessed glass groove: translucent track with an inner top shadow and a bottom highlight. */
+  .track {
+    position: relative;
+    block-size: var(--_height);
+    overflow: hidden;
+    border-radius: var(--gds-radius-full);
+    background-color: var(--gds-surface-track);
+    box-shadow:
+      inset 0 1px 0 var(--gds-border-subtle),
+      0 1px 0 var(--gds-border-glass);
+  }
+
+  /*
+   * Full-width bar slid into place: animates transform only, and keeps both rounded ends.
+   * Value changes glide on the gentle spring (no overshoot, so the bar never passes the value).
+   */
+  .indicator {
+    block-size: 100%;
+    border-radius: inherit;
+    background-color: var(--_color);
+    background-image: linear-gradient(var(--gds-border-glass), transparent);
+    box-shadow: inset 0 1px 0 var(--gds-border-glass-highlight);
+    transform: translateX(calc((var(--_progress) - 1) * 100% * var(--_dir)));
+    transition-property: transform;
+    transition-duration: var(--gds-duration-spring-gentle);
+    transition-timing-function: var(--gds-easing-spring-gentle);
+  }
+
+  /*
+   * Indeterminate: two segments chase each other (Material-style). A long one sweeps across first,
+   * a short one follows faster; each pass is eased, then rests. Each segment slides from fully
+   * before the track's start to fully past its end (translate % is of the segment's own width).
+   */
+  .root[data-state='indeterminate'] .indicator {
+    position: absolute;
+    inset: 0;
+    background: none;
+    box-shadow: none;
+    transform: none;
+    transition: none;
+  }
+
+  .root[data-state='indeterminate'] .indicator::before,
+  .root[data-state='indeterminate'] .indicator::after {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    border-radius: inherit;
+    background-color: var(--_color);
+    background-image: linear-gradient(var(--gds-border-glass), transparent);
+    box-shadow: inset 0 1px 0 var(--gds-border-glass-highlight);
+    transform: translateX(calc(-100% * var(--_dir)));
+    animation-duration: var(--_loop);
+    animation-iteration-count: infinite;
+  }
+
+  .root[data-state='indeterminate'] .indicator::before {
+    inline-size: 60%;
+    animation-name: segmentLong;
+    animation-timing-function: var(--gds-easing-standard);
+  }
+
+  .root[data-state='indeterminate'] .indicator::after {
+    inline-size: 25%;
+    animation-name: segmentShort;
+    animation-timing-function: var(--gds-easing-out);
+  }
+
+  /* 60% wide: 100% / 0.6 ≈ 167% of itself reaches the end of the track. */
+  @keyframes segmentLong {
+    0% { transform: translateX(calc(-100% * var(--_dir))); }
+    60%, 100% { transform: translateX(calc(167% * var(--_dir))); }
+  }
+
+  /* 25% wide: 400% of itself reaches the end. Waits for the long one to get ahead. */
+  @keyframes segmentShort {
+    0%, 40% { transform: translateX(calc(-100% * var(--_dir))); }
+    100% { transform: translateX(calc(400% * var(--_dir))); }
+  }
+
+  @keyframes pulse {
+    from { opacity: 1; }
+    to { opacity: var(--gds-opacity-muted); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .indicator { transition: none; }
+
+    /* No sliding: a full, slowly pulsing bar still reads as "in progress". */
+    .root[data-state='indeterminate'] .indicator {
+      background-color: var(--_color);
+      background-image: linear-gradient(var(--gds-border-glass), transparent);
+      animation: pulse var(--_pulse) var(--gds-easing-in-out) infinite alternate;
+    }
+
+    .root[data-state='indeterminate'] .indicator::before,
+    .root[data-state='indeterminate'] .indicator::after {
+      display: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .track { border: 1px solid CanvasText; }
+    .indicator,
+    .root[data-state='indeterminate'] .indicator::before,
+    .root[data-state='indeterminate'] .indicator::after {
+      forced-color-adjust: none;
+      background: Highlight;
+      box-shadow: none;
+    }
+    /* The indeterminate container itself stays clear; only its two segments are drawn. */
+    .root[data-state='indeterminate'] .indicator {
+      background: none;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .root[data-state='indeterminate'] .indicator {
+        background: Highlight;
+      }
+    }
+  }
+}

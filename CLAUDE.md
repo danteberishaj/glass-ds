@@ -16,6 +16,7 @@ A glassmorphism design system for React 19, shipped as an ESM library that must 
 | `npm run typecheck` / `npm run lint` | tsc / ESLint |
 | `npm run build` | Library build to `dist/` (JS + `.d.ts` + `glass-ds.css`) |
 | `npm run test:next` | Build, pack, install into `examples/next-app`, run `next build` |
+| `npm run build-storybook` | Static Storybook build |
 | `npm run verify` | Everything above except Storybook and Next. Run before calling work done |
 
 Run `npm run test:next` whenever you touch the build config, `package.json` exports, a `'use client'`
@@ -105,6 +106,53 @@ themes or a JS theme provider without a reason recorded here.
 5. Check the a11y panel in Storybook. axe marks contrast on glass as "incomplete" (see GOTCHA), so check it
    by hand on the vivid backdrop in both themes: ≥ 4.5:1 for text, ≥ 3:1 for UI and borders.
 6. Run `npm run verify` and `npm run test:next`.
+
+## Component inventory
+
+Benchmarked against the components shared by the most-starred React design systems (shadcn/ui, Ant Design, MUI, Chakra,
+Mantine, HeroUI), rebuilt glass-native on platform primitives (`<dialog>`, `<details>`, native inputs, no headless-UI dependency).
+
+| Group | Components | Client parts |
+| --- | --- | --- |
+| Layout & surfaces | Glass, Card (+Header/Title/Description/Content/Footer), Separator | — |
+| Actions | Button | — |
+| Forms | TextField, Textarea, Select (native), Checkbox, RadioGroup + Radio, Switch, Slider, Calendar, DatePicker | all form controls (`useId`) |
+| Data display | Badge, Avatar + AvatarGroup, Kbd, Table (+Caption/Header/Body/Footer/Row/Head/Cell) | AvatarImage (internal) |
+| Feedback | Alert, Progress, Spinner, Skeleton | — |
+| Navigation | Tabs (+TabList/Tab/TabPanel), Breadcrumb (+Item/Link/Page/Separator/Ellipsis), Pagination | Tabs |
+| Disclosure & overlays | Accordion (+Item/Trigger/Content), Dialog (+Header/Title/Description/Body/Footer/Close), Drawer (same parts) | DialogRoot (internal) |
+
+### Floating layers (decided)
+
+Popovers use the **native Popover API** (`popover="auto"`): top layer (no z-index fights, escapes `backdrop-filter`
+containing blocks without a portal), light dismiss and Esc for free. Position them with the internal hook
+`src/internal/useAnchoredPosition.ts` (pure `computePosition` + flip + viewport clamp). The trigger uses
+`popovertarget`, never a JS `showPopover()` on click. No positioning dependency. Revisit CSS anchor positioning
+when it is Baseline.
+
+**Not built yet:** Tooltip, Popover, Menu/Dropdown, Combobox, Toast. Build them on `useAnchoredPosition` + the
+Popover API, the same way DatePicker does.
+
+## Motion
+
+Demo and docs: Storybook **Foundations/Motion**.
+
+| Use | Easing | Duration |
+| --- | --- | --- |
+| Entering / moving UI | `--gds-easing-spring-snappy` | `--gds-duration-spring-snappy` |
+| Large surfaces (drawers, accordion height) | `--gds-easing-spring-gentle` | `--gds-duration-spring-gentle` |
+| Playful confirmation (press release, check, dot) | `--gds-easing-spring-bounce` | `--gds-duration-spring-bounce` |
+| Exiting | `--gds-easing-out` | `--gds-duration-fast` / `normal` |
+| Loops (spinner, pulses) | `--gds-easing-in-out` | `--gds-duration-loop*` / `pulse` |
+
+- Always pair a spring easing with its own duration token. The `linear()` curve is shaped for that settle time.
+- Animate `transform` and `opacity` only (plus paint-only properties like outline). Never animate `backdrop-filter`,
+  and never fade an ancestor of a glass element (see GOTCHA).
+- Write `transition-*` **longhands**. The base selector owns the transition. State selectors (`:active`, `[open]`)
+  only change private `--_t-*` / `--_press-*` variables, so reduced-motion overrides still win.
+- Fast in, springy out for presses: `:active` uses `duration-fast` + `easing-out`, and the release springs back.
+- `prefers-reduced-motion: reduce`: no movement. Opacity/colour crossfades stay, and loops become a slow pulse.
+- Sheen: add `GLASS_SHEEN_CLASS` (or `data-sheen`). It uses the element's `::after` and clips its children.
 
 ## Glassmorphism principles
 

@@ -1,0 +1,77 @@
+/* Storybook-only styles for Foundations/Motion. Not part of the library build. */
+@layer gds.components {
+  .demo {
+    display: grid;
+    gap: var(--gds-space-4);
+    inline-size: min(100%, calc(var(--gds-space-16) * 9));
+    padding: var(--gds-space-6);
+    font-family: var(--gds-font-family-sans);
+    font-size: var(--gds-font-size-sm);
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: calc(var(--gds-space-16) * 2.5) 1fr;
+    align-items: center;
+    gap: var(--gds-space-3);
+  }
+
+  .name {
+    display: grid;
+    gap: var(--gds-space-0_5);
+  }
+
+  .name code {
+    font-family: var(--gds-font-family-mono);
+    font-size: var(--gds-font-size-xs);
+    color: var(--gds-text-secondary);
+  }
+
+  .track {
+    container-type: inline-size;
+    block-size: var(--gds-space-8);
+    border-radius: var(--gds-radius-full);
+    background-color: var(--gds-surface-track);
+  }
+
+  /* --_duration / --_easing come from the story, one pair per row. */
+  .box {
+    inline-size: var(--gds-space-8);
+    block-size: var(--gds-space-8);
+    border-radius: var(--gds-radius-full);
+    background-color: var(--gds-accent);
+    box-shadow: var(--gds-shadow-glass);
+    transition-property: transform;
+    transition-duration: var(--_duration);
+    transition-timing-function: var(--_easing);
+  }
+
+  .demo[data-played] .box {
+    transform: translateX(calc(100cqi - var(--gds-space-8)));
+  }
+
+  .note {
+    margin: 0;
+    color: var(--gds-text-secondary);
+  }
+
+  .playground {
+    display: grid;
+    gap: var(--gds-space-6);
+    padding: var(--gds-space-6);
+    font-family: var(--gds-font-family-sans);
+  }
+
+  .cluster {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--gds-space-4);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .box {
+      transition: none;
+    }
+  }
+}

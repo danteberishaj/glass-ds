@@ -13,7 +13,7 @@
   }
 
   .input {
-    min-height: 40px;
+    min-height: var(--gds-control-height-md);
     padding-inline: var(--gds-space-3);
     border-radius: var(--gds-radius-md);
     font: inherit;
@@ -24,8 +24,21 @@
     color: var(--gds-text-secondary);
   }
 
+  /*
+   * The focus ring grows out of the edge (width and offset from 0) instead of popping in. Outline is
+   * paint-only (no layout), so this is cheap. Width 0 rather than a transparent colour: forced-colors
+   * mode would repaint a transparent outline as visible on every unfocused field.
+   */
+  .input {
+    outline: 0 solid var(--gds-focus-ring);
+    outline-offset: 0;
+    transition-property: outline-width, outline-offset;
+    transition-duration: var(--gds-duration-fast);
+    transition-timing-function: var(--gds-easing-out);
+  }
+
   .input:focus-visible {
-    outline: 2px solid var(--gds-focus-ring);
+    outline-width: 2px;
     outline-offset: 2px;
   }
 
@@ -35,7 +48,7 @@
 
   .input:disabled {
     cursor: not-allowed;
-    opacity: 0.5;
+    opacity: var(--gds-opacity-disabled);
   }
 
   .hint {
@@ -47,5 +60,11 @@
     font-size: var(--gds-font-size-xs);
     font-weight: var(--gds-font-weight-medium);
     color: var(--gds-danger);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .input {
+      transition: none;
+    }
   }
 }

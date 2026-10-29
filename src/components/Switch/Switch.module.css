@@ -1,0 +1,195 @@
+@layer gds.components {
+  .root {
+    --_track-w: 44px;
+    --_track-h: 24px;
+    --_inset: 2px;
+    --_font-size: var(--gds-font-size-sm);
+    --_gap: var(--gds-space-3);
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--gds-space-1);
+    font-family: var(--gds-font-family-sans);
+  }
+
+  .root[data-size='sm'] {
+    --_track-w: 36px;
+    --_track-h: 20px;
+    --_font-size: var(--gds-font-size-xs);
+    --_gap: var(--gds-space-2);
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    gap: var(--_gap);
+  }
+
+  /*
+   * The input is the track; ::before is the thumb. The track is a translucent fill (no blur on a
+   * control this small). Unchecked state relies on a border-strong outline and a text-secondary thumb,
+   * so the control and its state stay >= 3:1 on any glass.
+   */
+  .control {
+    --_thumb: calc(var(--_track-h) - 2px - 2 * var(--_inset));
+    --_travel: calc(var(--_track-w) - var(--_track-h));
+    --_bg: var(--gds-surface-track);
+    --_border: var(--gds-border-strong);
+    --_thumb-bg: var(--gds-text-secondary);
+    --_thumb-x: 0px;
+    --_thumb-scale: 0.75;
+    /*
+     * Press stretch (iOS-like): the thumb widens by --_stretch and its centre shifts by half the extra
+     * width toward the side it will travel to (--_toward: +1 = right, -1 = left), so the edge it rests
+     * against stays put. scaleX, not width: transform-only, at the cost of slightly oval ends.
+     */
+    --_stretch: 1;
+    --_toward: 1;
+    --_thumb-duration: var(--gds-duration-spring-bounce);
+    --_thumb-easing: var(--gds-easing-spring-bounce);
+
+    appearance: none;
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    box-sizing: border-box;
+    inline-size: var(--_track-w);
+    block-size: var(--_track-h);
+    margin: 0;
+    padding: var(--_inset);
+    border: 1px solid var(--_border);
+    border-radius: var(--gds-radius-full);
+    background-color: var(--_bg);
+    cursor: pointer;
+    transition:
+      background-color var(--gds-duration-normal) var(--gds-easing-standard),
+      border-color var(--gds-duration-normal) var(--gds-easing-standard);
+  }
+
+  .control::before {
+    content: '';
+    flex: none;
+    inline-size: var(--_thumb);
+    block-size: var(--_thumb);
+    border-radius: var(--gds-radius-full);
+    background-color: var(--_thumb-bg);
+    box-shadow: var(--gds-shadow-glass);
+    transform:
+      translateX(calc(var(--_thumb-x) + (var(--_stretch) - 1) * var(--_thumb) * var(--_thumb-scale) / 2 * var(--_toward)))
+      scale(var(--_thumb-scale))
+      scaleX(var(--_stretch));
+    transition-property: transform, background-color;
+    transition-duration: var(--_thumb-duration), var(--gds-duration-normal);
+    transition-timing-function: var(--_thumb-easing), var(--gds-easing-standard);
+  }
+
+  .control:hover:not(:disabled) {
+    --_bg: var(--gds-accent-glass);
+  }
+
+  /* Press: stretch fast; release (which also toggles) springs back with the base timing. */
+  .control:active:not(:disabled) {
+    --_thumb-scale: 0.85;
+    --_stretch: 1.25;
+    --_thumb-duration: var(--gds-duration-normal);
+    --_thumb-easing: var(--gds-easing-out);
+  }
+
+  .control:checked {
+    --_bg: var(--gds-accent);
+    --_border: var(--gds-accent);
+    --_thumb-bg: var(--gds-text-on-accent);
+    --_thumb-x: var(--_travel);
+    --_thumb-scale: 1;
+    --_toward: -1;
+  }
+
+  .control:checked:hover:not(:disabled) {
+    --_bg: var(--gds-accent-hover);
+    --_border: var(--gds-accent-hover);
+  }
+
+  .control:checked:active:not(:disabled) {
+    --_thumb-scale: 0.9;
+  }
+
+  .control:dir(rtl) {
+    --_toward: -1;
+  }
+
+  .control:dir(rtl):checked {
+    --_thumb-x: calc(-1 * var(--_travel));
+    --_toward: 1;
+  }
+
+  .control:focus-visible {
+    outline: 2px solid var(--gds-focus-ring);
+    outline-offset: 2px;
+  }
+
+  .control:disabled {
+    cursor: not-allowed;
+    opacity: var(--gds-opacity-disabled);
+  }
+
+  .label {
+    font-size: var(--_font-size);
+    font-weight: var(--gds-font-weight-medium);
+    line-height: var(--gds-font-line-height-normal);
+    color: var(--gds-text-primary);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .row:has(.control:disabled) .label {
+    cursor: not-allowed;
+    opacity: var(--gds-opacity-disabled);
+  }
+
+  .hint {
+    padding-inline-start: calc(var(--_track-w) + var(--_gap));
+    font-size: var(--gds-font-size-xs);
+    line-height: var(--gds-font-line-height-normal);
+    color: var(--gds-text-secondary);
+  }
+
+  @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    .control {
+      --_bg: var(--gds-surface-solid-strong);
+    }
+  }
+
+  /* The thumb jumps; the track colour still crossfades (no movement). */
+  @media (prefers-reduced-motion: reduce) {
+    .control::before {
+      transition-property: background-color;
+    }
+    .control:active:not(:disabled) {
+      --_stretch: 1;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .control,
+    .control:hover:not(:disabled) {
+      forced-color-adjust: none;
+      --_bg: Canvas;
+      --_border: CanvasText;
+      --_thumb-bg: CanvasText;
+    }
+    .control::before {
+      box-shadow: none;
+    }
+    .control:checked,
+    .control:checked:hover:not(:disabled) {
+      --_bg: Highlight;
+      --_border: Highlight;
+      --_thumb-bg: HighlightText;
+    }
+    .control:disabled {
+      --_border: GrayText;
+      --_thumb-bg: GrayText;
+      opacity: 1;
+    }
+  }
+}
